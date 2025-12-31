@@ -89,7 +89,7 @@ date: last-modified
   - [Security]{.alert} (time permitting)
 
 
-## Background {background-color="#40666e"}
+# Background {background-color="#40666e"}
 
 ## Intro
 - What is an operating system?
