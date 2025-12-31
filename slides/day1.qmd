@@ -29,7 +29,7 @@ date: last-modified
 
 - Too much to cover in one term: survey of important topics
 - Course Canvas: [https://canvas.calpoly.edu/courses/168889](https://canvas.calpoly.edu/courses/168889)
-- Syllabus: [https://docs.google.com/document/d/1wf3vldlRBRfZ-AcYNf0PlwrtkJsCHUjoaqXG5QEOw3A/edit?usp=sharing](https://docs.google.com/document/d/1wf3vldlRBRfZ-AcYNf0PlwrtkJsCHUjoaqXG5QEOw3A/edit?usp=sharing)
+- Syllabus: [https://schmittpaul.github.io/CSC453W26/syllabus.pdf](https://schmittpaul.github.io/CSC453W26/syllabus.pdf)
 - Waitlists...
 
 ## Who are you?
