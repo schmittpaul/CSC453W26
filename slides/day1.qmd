@@ -8,8 +8,6 @@ format:
     margin: 0.15 
     # height: 700   # Optional: Normal height (defaults to 700)
     # width: 1000   # Optional: Normal width (defaults to 900)
-
-date: last-modified
 ---
 # This class {background-color="#40666e"}
 
