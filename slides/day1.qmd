@@ -1,5 +1,5 @@
 ---
-title: CSC 453 - day1
+title: CSC 453 - day12
 subtitle: Operating Systems
 format: 
   clean-revealjs:
