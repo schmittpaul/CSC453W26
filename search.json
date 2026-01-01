@@ -207,7 +207,7 @@
     "href": "day1.html#monolithic-kernels-contd",
     "title": "CSC 453",
     "section": "Monolithic kernels (cont’d)",
-    "text": "Monolithic kernels (cont’d)\n\nQ: What happens when you need something new supported (new hardware device, new system call, new filesystem)?\nModules (loadable kernel modules - LKMs) allow for flexibility, customization, support\n\nPros?\n\nMemory savings\nFlexibility\nMinimal downtime\n\nCons?\n\n(minor) fragmentation: the base kernel can be loaded contiguously in memory\nSecurity (https://github.com/m0nad/Diamorphine DO NOT USE THIS, IT’S SIMPLY TO SHOW YOU)"
+    "text": "Monolithic kernels (cont’d)\nQ: What happens when you need something new supported (new hardware device, new system call, new filesystem)?\n\nModules (loadable kernel modules - LKMs) allow for flexibility, customization, support\n\nPros?\n\nMemory savings\nFlexibility\nMinimal downtime\n\nCons?\n\n(minor) fragmentation: the base kernel can be loaded contiguously in memory\nSecurity (https://github.com/m0nad/Diamorphine DO NOT USE THIS, IT’S SIMPLY TO SHOW YOU)"
   },
   {
     "objectID": "day1.html#layered-kernels",
