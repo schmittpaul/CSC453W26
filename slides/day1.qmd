@@ -358,8 +358,7 @@ Comments? Thoughts?
 
 ## Monolithic kernels (cont'd)
 
-Q: What happens when you need something new supported (new hardware device, new system call, new filesystem)? 
-
+- Q: What happens when you need something new supported (new hardware device, new system call, new filesystem)? 
 - [Modules]{.alert} (loadable kernel modules - LKMs) allow for flexibility, customization, support 
   - Pros?
     - Memory savings
