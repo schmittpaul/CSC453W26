@@ -1,5 +1,5 @@
 ---
-title: CSC 453
+title: CSC 453 - day1
 subtitle: Operating Systems
 format: 
   clean-revealjs:
@@ -8,12 +8,13 @@ format:
 
 date: last-modified
 ---
+# This class {background-color="#40666e"}
 
 ## Who am I?
 
 - [https://pschmitt.net](https://pschmitt.net)
 - Academics
-  - PhD at UCSB
+  - PhD at UCSBsss
   - Researcher (summers) at ICSI
   - Postdoc then research faculty at Princeton
   - Some other stops… USC, Stanford, UH
@@ -122,7 +123,63 @@ date: last-modified
 
 ::::
 
-## OS abstractions
+
+## OS history - how did we get here?
+
+:::: {.columns}
+
+::: {.column width="55%"}
+
+- Started out as [libraries]{.alert} to provide common functionality across programs
+  - See any issues with this approach?
+- Later, evolved from [procedure call]{.alert} to [system call]{.alert}
+  - What's the difference?
+- Evolved from running a single program to [multiple processes concurrently]{.alert}
+  - New issues to solve?
+
+:::
+
+::: {.column width="5%"}
+:::
+
+::: {.column width="40%"}
+![](images/old_os.png)
+:::
+
+::::
+
+::: {.notes}
+- Imagine you allowed any process to read anywhere from the disk or memory. There is no privacy.
+
+- Memory protection, concurrency / scheduling issues
+:::
+
+## Types of operating systems
+
+- Desktop
+- Time share/Mainframe
+- Mobile
+- Web
+- Real-time
+- Embedded
+- Virtual Machines
+- Q: How do the requirements differ?
+
+## Tl;dr
+OSes continue to evolve as environments (i.e., constraints) change
+
+## {background-color="#40666e"}
+
+::: {.r-fit-text}
+What isn't clear? 
+
+Comments? Thoughts? 
+:::
+
+
+# OS abstractions {background-color="#40666e"}
+
+## Abstractions
 
 - Abstractions _simplify application design_ by:
   - hiding undesirable properties,
@@ -181,8 +238,6 @@ Memory Address Space
 
 :::
 
-## What isn't clear? Comments? Thoughts? {background-color="#40666e"}
-
 ## Abstraction pros / cons
 
 - [Advantages]{.alert} of OS providing abstractions?
@@ -203,7 +258,19 @@ Memory Address Space
   - Security
   - Mobility
 
-## So, what is an operating system?
+## {background-color="#40666e"}
+
+::: {.r-fit-text}
+What isn't clear? 
+
+Comments? Thoughts? 
+:::
+
+
+# Resource management {background-color="#40666e"}
+
+## OS as a resource manager 
+
 
 - Another view: [resource manager]{.alert} - shares resources "well"
 - [Advantages]{.alert} of the OS managing resources?
@@ -250,18 +317,183 @@ Example 2: We have two process (producer / consumer); how do they communicate?
   - How to we prevent over-production? Over-consumption?
   - Context-switching?
 
-## What isn't clear? Comments? Thoughts? {background-color="#40666e"}
+## {background-color="#40666e"}
 
-# SLOsh {background-color="#40666e"}
+::: {.r-fit-text}
+What isn't clear? 
+
+Comments? Thoughts? 
+:::
+
+# Kernel basics {background-color="#40666e"}
+
+## Briefly: what happens at boot?
+
+- [BIOS / UEFI]{.alert} initializes devices and finds the next program to run
+- [Bootloader]{.alert}: simple code to initialize the system, load the kernel
+  - Why do we need a bootloader?
+    - Safe mode
+- Kernel loads
+  - First process: init (example: systemd), pid == 1
+    - Parent of all processes
+    - Init starts [system daemons]{.alert} (services provided outside of the kernel)
+
+## Paradigms
+
+- The OS offers a number of services. What should go in the kernel?
+  - IPC
+  - VFS
+  - File system
+  - Scheduler
+  - Virtual Memory
+  - Device drivers
+
+## Monolithic kernels
+
+- Oldest, very common design (Linux, Windows 9x, BSDs)
+- Single piece of code in memory
+- Limited [information hiding]{.alert}
+  - One part of the kernel can directly access data and functions of other parts
+
+## Monolithic kernels (cont'd)
+
+Q: What happens when you need something new supported (new hardware device, new system call, new filesystem)? 
+
+- [Modules]{.alert} (loadable kernel modules - LKMs) allow for flexibility, customization, support 
+  - Pros?
+    - Memory savings
+    - Flexibility
+    - Minimal downtime
+  - Cons? 
+    - (minor) fragmentation: the base kernel can be loaded contiguously in memory
+    - Security ([https://github.com/m0nad/Diamorphine](https://github.com/m0nad/Diamorphine) **DO NOT USE THIS, IT'S SIMPLY TO SHOW YOU**)
+
+## Layered kernels
+
+- Dijkstra created the THE OS in the 60s, introducing the concept
+Each inner layer is more privileged; required a trap to move down layers
+- Hardware-enforcement possible
+- Intel [announced](https://www.intel.com/content/www/us/en/developer/articles/technical/envisioning-future-simplified-architecture.html) in May 2024 that the new architectures will only have rings 0 and 3
+
+## Microkernels
+
+:::: {.columns}
+
+::: {.column width="55%"}
+
+- Popular research area long ago, didn't win (although people remain interested in the principles)
+- All non-essential components removed from the kernel, for modularization, extensibility, isolation, security, and ease of management
+- A collection of OS services running in user space
+- Downsides? 
+  - Heavy communication costs through message passing (marshaled through the kernel)
+
+:::
+
+::: {.column width="5%"}
+:::
+
+::: {.column width="40%"}
+![](images/microkernel.png){.fragment}
+:::
+
+::::
+
+## Monolithic vs Microkernel
+![](images/mono_vs_micro.png)
+
+## {background-color="#40666e"}
+
+::: {.r-fit-text}
+What isn't clear? 
+
+Comments? Thoughts? 
+:::
+
+# Process basics {background-color="#40666e"}
+
+## Process isolation
+
+Q: How can we ensure that a user process doesn't harm others?
+
+## Dual-mode operation
+
+- Dual-mode operation allows OS to protect itself and components
+  - [User mode]{.alert} and [kernel]{.alert} mode 
+- Mode bit provided by hardware 
+  - Provides ability to distinguish when system is running user code or kernel code.
+  - When a user is running → mode bit is "user"
+  - When kernel code is executing → mode bit is "kernel"
+- [System call]{.alert} changes mode to kernel, return from call resets it to user
+- Some instructions are only executable in kernel mode
+
+## System calls
+
+- The OS offers a number of services. How do we (applications) interface with them?
+  - We don't want to deal with the details, just the abstraction
+  - The OS has ultimate control over these operations
+- System calls are the "language" of communication with the OS
+- Standards
+  - Win32 (MS)
+  - POSIX (nearly all Unix-based systems)
+  - Java API for the JVM
+
+## System calls (cont'd)
+
+- Like a function call, we push arguments onto the stack, then we call into the library that provides the system call
+- Each system call has a special number, placed into a register
+- Executes a TRAP instruction (switch to kernel mode)
+- A logical separation of memory space
+- Kernel's system call handler is invoked, once done (but may block) may be returned to the process
+
+## System calls (cont'd)
+
+- Table defined in the kernel: [https://github.com/torvalds/linux/blob/master/arch/x86/entry/syscalls/syscall_32.tbl](https://github.com/torvalds/linux/blob/master/arch/x86/entry/syscalls/syscall_32.tbl)
+- You can run using the table values themselves using the `syscall()` wrapper
+  - Q: why does `syscall()` exist?
+  - If you're interested… There are debates [https://lwn.net/Articles/771441/](https://lwn.net/Articles/771441/)
+
+## {background-color="#40666e"}
+::: {.r-fit-text}
+What isn't clear? 
+
+Comments? Thoughts? 
+:::
+
+# Assignment 1: SLOsh {background-color="#40666e"}
+
+## SLOsh
+
+- This assignment should be a refresher of 357 topics
+- Your shell will support: 
+  - basic command execution
+  - built-in commands
+  - signal handling
+  - I/O redirection
+  - piping
+
+## Requirements
+
+::: {.nonincremental}
+- C99 POSIX
+- Must compile / run on the unix* servers
+- You must create a functional Makefile
+- Submit a tar (.tgz) file in Canvas
+:::
+
+## Command execution
+
+- Execute external commands 
+  - Use `fork()`, `exec()`, and `waitpid()` to manage process execution
+- Support command-line arguments
+- Handle both relative and absolute paths to executables
+- Report command execution errors appropriately
+
+## Redirection / piping
+
+- Use `open()`, `dup2()`, and `close()` for file redirection
+- Use `pipe()` for creating pipes between processes
 
 ## Signal handling
-
-- General
-- Signal handler for SIGINT
-- Parent vs child
-- sigaction
-
-## General
 
 - Signals are async. They can happen at any time
 - Certain functions are async-safe, others are not
