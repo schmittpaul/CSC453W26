@@ -1,5 +1,5 @@
 ---
-title: CSC 453 - day321
+title: CSC 453
 subtitle: Operating Systems
 format: 
   clean-revealjs:
@@ -14,7 +14,7 @@ date: last-modified
 
 - [https://pschmitt.net](https://pschmitt.net)
 - Academics
-  - PhD at UCSBsss
+  - PhD at UCSB
   - Researcher (summers) at ICSI
   - Postdoc then research faculty at Princeton
   - Some other stops… USC, Stanford, UH
