@@ -93,11 +93,13 @@ format:
 
 # Background {background-color="#40666e"}
 
-## Intro
+## Questions to consider
+:::{.nonincremental}
 - What is an operating system?
 - What do they do?
 - How did OSes evolve?
-- How do OSes manage access to resources?
+- How do the requirements differ for different OSes?
+:::
 
 ## What is an operating system?
 
@@ -164,12 +166,11 @@ format:
 - Real-time
 - Embedded
 - Virtual Machines
-- Q: How do the requirements differ?
 
 ## Tl;dr
 OSes continue to evolve as environments (i.e., constraints) change
 
-## {background-color="#40666e"}
+## {background-color="#6E404F"}
 
 ::: {.r-fit-text}
 What isn't clear? 
@@ -179,6 +180,12 @@ Comments? Thoughts?
 
 
 # OS abstractions {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- What are the main abstractions OSes provide?
+- What are the abstraction challenges?
+:::
 
 ## Abstractions
 
@@ -259,7 +266,7 @@ Memory Address Space
   - Security
   - Mobility
 
-## {background-color="#40666e"}
+## {background-color="#6E404F"}
 
 ::: {.r-fit-text}
 What isn't clear? 
@@ -269,6 +276,11 @@ Comments? Thoughts?
 
 
 # Resource management {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- How does the OS manage access to resources?
+:::
 
 ## OS as a resource manager 
 
@@ -318,210 +330,10 @@ Example 2: We have two process (producer / consumer); how do they communicate?
   - How to we prevent over-production? Over-consumption?
   - Context-switching?
 
-## {background-color="#40666e"}
+## {background-color="#6E404F"}
 
 ::: {.r-fit-text}
 What isn't clear? 
 
 Comments? Thoughts? 
 :::
-
-# Kernel basics {background-color="#40666e"}
-
-## Briefly: what happens at boot?
-
-- [BIOS / UEFI]{.alert} initializes devices and finds the next program to run
-- [Bootloader]{.alert}: simple code to initialize the system, load the kernel
-  - Why do we need a bootloader?
-    - Safe mode
-- Kernel loads
-  - First process: init (example: systemd), pid == 1
-    - Parent of all processes
-    - Init starts [system daemons]{.alert} (services provided outside of the kernel)
-
-## Paradigms
-
-- The OS offers a number of services. What should go in the kernel?
-  - IPC
-  - VFS
-  - File system
-  - Scheduler
-  - Virtual Memory
-  - Device drivers
-
-## Monolithic kernels
-
-- Oldest, very common design (Linux, Windows 9x, BSDs)
-- Single piece of code in memory
-- Limited [information hiding]{.alert}
-  - One part of the kernel can directly access data and functions of other parts
-
-## Monolithic kernels (cont'd)
-
-- Q: What happens when you need something new supported (new hardware device, new system call, new filesystem)? 
-- [Modules]{.alert} (loadable kernel modules - LKMs) allow for flexibility, customization, support 
-  - Pros?
-    - Memory savings
-    - Flexibility
-    - Minimal downtime
-  - Cons? 
-    - (minor) fragmentation: the base kernel can be loaded contiguously in memory
-    - Security ([https://github.com/m0nad/Diamorphine](https://github.com/m0nad/Diamorphine) **DO NOT USE THIS, IT'S SIMPLY TO SHOW YOU**)
-
-## Layered kernels
-
-- Dijkstra created the THE OS in the 60s, introducing the concept
-Each inner layer is more privileged; required a trap to move down layers
-- Hardware-enforcement possible
-- Intel [announced](https://www.intel.com/content/www/us/en/developer/articles/technical/envisioning-future-simplified-architecture.html) in May 2024 that the new architectures will only have rings 0 and 3
-
-## Microkernels
-
-:::: {.columns}
-
-::: {.column width="55%"}
-
-- Popular research area long ago, didn't win (although people remain interested in the principles)
-- All non-essential components removed from the kernel, for modularization, extensibility, isolation, security, and ease of management
-- A collection of OS services running in user space
-- Downsides? 
-  - Heavy communication costs through message passing (marshaled through the kernel)
-
-:::
-
-::: {.column width="5%"}
-:::
-
-::: {.column width="40%"}
-![](images/microkernel.png){.fragment}
-:::
-
-::::
-
-## Monolithic vs Microkernel
-![](images/mono_vs_micro.png)
-
-## {background-color="#40666e"}
-
-::: {.r-fit-text}
-What isn't clear? 
-
-Comments? Thoughts? 
-:::
-
-# Process basics {background-color="#40666e"}
-
-## Process isolation
-
-Q: How can we ensure that a user process doesn't harm others?
-
-## Dual-mode operation
-
-- Dual-mode operation allows OS to protect itself and components
-  - [User mode]{.alert} and [kernel]{.alert} mode 
-- Mode bit provided by hardware 
-  - Provides ability to distinguish when system is running user code or kernel code.
-  - When a user is running → mode bit is "user"
-  - When kernel code is executing → mode bit is "kernel"
-- [System call]{.alert} changes mode to kernel, return from call resets it to user
-- Some instructions are only executable in kernel mode
-
-## System calls
-
-- The OS offers a number of services. How do we (applications) interface with them?
-  - We don't want to deal with the details, just the abstraction
-  - The OS has ultimate control over these operations
-- System calls are the "language" of communication with the OS
-- Standards
-  - Win32 (MS)
-  - POSIX (nearly all Unix-based systems)
-  - Java API for the JVM
-
-## System calls (cont'd)
-
-- Like a function call, we push arguments onto the stack, then we call into the library that provides the system call
-- Each system call has a special number, placed into a register
-- Executes a TRAP instruction (switch to kernel mode)
-- A logical separation of memory space
-- Kernel's system call handler is invoked, once done (but may block) may be returned to the process
-
-## System calls (cont'd)
-
-- Table defined in the kernel: [https://github.com/torvalds/linux/blob/master/arch/x86/entry/syscalls/syscall_32.tbl](https://github.com/torvalds/linux/blob/master/arch/x86/entry/syscalls/syscall_32.tbl)
-- You can run using the table values themselves using the `syscall()` wrapper
-  - Q: why does `syscall()` exist?
-  - If you're interested… There are debates [https://lwn.net/Articles/771441/](https://lwn.net/Articles/771441/)
-
-## {background-color="#40666e"}
-::: {.r-fit-text}
-What isn't clear? 
-
-Comments? Thoughts? 
-:::
-
-# Assignment 1: SLOsh {background-color="#40666e"}
-
-## SLOsh
-
-- This assignment should be a refresher of 357 topics
-- Your shell will support: 
-  - basic command execution
-  - built-in commands
-  - signal handling
-  - I/O redirection
-  - piping
-
-## Requirements
-
-::: {.nonincremental}
-- C99 POSIX
-- Must compile / run on the unix* servers
-- You must create a functional Makefile
-- Submit a tar (.tgz) file in Canvas
-:::
-
-## Command execution
-
-- Execute external commands 
-  - Use `fork()`, `exec()`, and `waitpid()` to manage process execution
-- Support command-line arguments
-- Handle both relative and absolute paths to executables
-- Report command execution errors appropriately
-
-## Redirection / piping
-
-- Use `open()`, `dup2()`, and `close()` for file redirection
-- Use `pipe()` for creating pipes between processes
-
-## Signal handling
-
-- Signals are async. They can happen at any time
-- Certain functions are async-safe, others are not
-  - `printf()` contains internal buffers and state; an interruption can lead to corrupted buffers 
-
-## Handling SIGINT
-
-- `write()` a newline or whatever to signify the signal was caught.
-- If there is not a child running, `write()` a new prompt
-- Why not just use `display_prompt()`?
-  - If it's using `write()` it could be fine. If it's using `printf()` it isn't
-
-## Parent vs child
-
-- The child should immediately reset signal handling to the default
-- Look up `signal()`'s man
-  ```{.bash code-line-numbers=false}
-  man 2 signal
-  ``` 
-
-## Sigaction
-
-- `sigaction()` is newer than `signal()`
-- Offers more control and is more consistent across systems
-- Allows specifying flags
-  - SA_RESTART (`man 7 signal`)
-    - Without it, syscalls return with EINTR error if they are interrupted by a signal
-    - With it, most syscalls automatically restart
-- Is the POSIX-compliant approach
-- EINTR can still happen, it's wise to check for it and handle it
-  - When reading input from user
