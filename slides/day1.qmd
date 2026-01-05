@@ -33,6 +33,7 @@ format:
 - Course Canvas: [https://canvas.calpoly.edu/courses/168889](https://canvas.calpoly.edu/courses/168889)
 - Syllabus: [https://schmittpaul.github.io/CSC453W26/syllabus.pdf](https://schmittpaul.github.io/CSC453W26/syllabus.pdf)
 - Waitlists...
+- What OSes do you all run?
 
 ## Who are you?
 
