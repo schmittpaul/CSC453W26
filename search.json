@@ -49,11 +49,11 @@
     "text": "Course progression\n\nIntroduction to operating system abstractions and structures\nAbstracting and multiplexing:\n\nCPU: interrupts, context, threads, processes, processor scheduling, thread synchronization, deadlocks\nMemory: memory layout, address translation, paging and segmentation, address spaces, translation caching, page fault handling, page eviction, swapping\nFile systems and storage: disk scheduling, on-disk layout, files, buffer cache, crash and recovery\nSecurity (time permitting)"
   },
   {
-    "objectID": "day1.html#intro",
-    "href": "day1.html#intro",
+    "objectID": "day1.html#questions-to-consider",
+    "href": "day1.html#questions-to-consider",
     "title": "CSC 453",
-    "section": "Intro",
-    "text": "Intro\n\nWhat is an operating system?\nWhat do they do?\nHow did OSes evolve?\nHow do OSes manage access to resources?"
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat is an operating system?\nWhat do they do?\nHow did OSes evolve?\nHow do the requirements differ for different OSes?"
   },
   {
     "objectID": "day1.html#what-is-an-operating-system",
@@ -74,7 +74,7 @@
     "href": "day1.html#types-of-operating-systems",
     "title": "CSC 453",
     "section": "Types of operating systems",
-    "text": "Types of operating systems\n\nDesktop\nTime share/Mainframe\nMobile\nWeb\nReal-time\nEmbedded\nVirtual Machines\nQ: How do the requirements differ?"
+    "text": "Types of operating systems\n\nDesktop\nTime share/Mainframe\nMobile\nWeb\nReal-time\nEmbedded\nVirtual Machines"
   },
   {
     "objectID": "day1.html#tldr",
@@ -89,6 +89,13 @@
     "title": "CSC 453",
     "section": "",
     "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day1.html#questions-to-consider-1",
+    "href": "day1.html#questions-to-consider-1",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat are the main abstractions OSes provide?\nWhat are the abstraction challenges?"
   },
   {
     "objectID": "day1.html#abstractions",
@@ -140,6 +147,13 @@
     "text": "What isn’t clear?\nComments? Thoughts?"
   },
   {
+    "objectID": "day1.html#questions-to-consider-2",
+    "href": "day1.html#questions-to-consider-2",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nHow does the OS manage access to resources?"
+  },
+  {
     "objectID": "day1.html#os-as-a-resource-manager",
     "href": "day1.html#os-as-a-resource-manager",
     "title": "CSC 453",
@@ -180,159 +194,5 @@
     "title": "CSC 453",
     "section": "",
     "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
-    "objectID": "day1.html#briefly-what-happens-at-boot",
-    "href": "day1.html#briefly-what-happens-at-boot",
-    "title": "CSC 453",
-    "section": "Briefly: what happens at boot?",
-    "text": "Briefly: what happens at boot?\n\nBIOS / UEFI initializes devices and finds the next program to run\nBootloader: simple code to initialize the system, load the kernel\n\nWhy do we need a bootloader?\n\nSafe mode\n\n\nKernel loads\n\nFirst process: init (example: systemd), pid == 1\n\nParent of all processes\nInit starts system daemons (services provided outside of the kernel)"
-  },
-  {
-    "objectID": "day1.html#paradigms",
-    "href": "day1.html#paradigms",
-    "title": "CSC 453",
-    "section": "Paradigms",
-    "text": "Paradigms\n\nThe OS offers a number of services. What should go in the kernel?\n\nIPC\nVFS\nFile system\nScheduler\nVirtual Memory\nDevice drivers"
-  },
-  {
-    "objectID": "day1.html#monolithic-kernels",
-    "href": "day1.html#monolithic-kernels",
-    "title": "CSC 453",
-    "section": "Monolithic kernels",
-    "text": "Monolithic kernels\n\nOldest, very common design (Linux, Windows 9x, BSDs)\nSingle piece of code in memory\nLimited information hiding\n\nOne part of the kernel can directly access data and functions of other parts"
-  },
-  {
-    "objectID": "day1.html#monolithic-kernels-contd",
-    "href": "day1.html#monolithic-kernels-contd",
-    "title": "CSC 453",
-    "section": "Monolithic kernels (cont’d)",
-    "text": "Monolithic kernels (cont’d)\n\nQ: What happens when you need something new supported (new hardware device, new system call, new filesystem)?\nModules (loadable kernel modules - LKMs) allow for flexibility, customization, support\n\nPros?\n\nMemory savings\nFlexibility\nMinimal downtime\n\nCons?\n\n(minor) fragmentation: the base kernel can be loaded contiguously in memory\nSecurity (https://github.com/m0nad/Diamorphine DO NOT USE THIS, IT’S SIMPLY TO SHOW YOU)"
-  },
-  {
-    "objectID": "day1.html#layered-kernels",
-    "href": "day1.html#layered-kernels",
-    "title": "CSC 453",
-    "section": "Layered kernels",
-    "text": "Layered kernels\n\nDijkstra created the THE OS in the 60s, introducing the concept Each inner layer is more privileged; required a trap to move down layers\nHardware-enforcement possible\nIntel announced in May 2024 that the new architectures will only have rings 0 and 3"
-  },
-  {
-    "objectID": "day1.html#microkernels",
-    "href": "day1.html#microkernels",
-    "title": "CSC 453",
-    "section": "Microkernels",
-    "text": "Microkernels\n\n\n\nPopular research area long ago, didn’t win (although people remain interested in the principles)\nAll non-essential components removed from the kernel, for modularization, extensibility, isolation, security, and ease of management\nA collection of OS services running in user space\nDownsides?\n\nHeavy communication costs through message passing (marshaled through the kernel)"
-  },
-  {
-    "objectID": "day1.html#monolithic-vs-microkernel",
-    "href": "day1.html#monolithic-vs-microkernel",
-    "title": "CSC 453",
-    "section": "Monolithic vs Microkernel",
-    "text": "Monolithic vs Microkernel"
-  },
-  {
-    "objectID": "day1.html#section-4",
-    "href": "day1.html#section-4",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
-    "objectID": "day1.html#process-isolation",
-    "href": "day1.html#process-isolation",
-    "title": "CSC 453",
-    "section": "Process isolation",
-    "text": "Process isolation\nQ: How can we ensure that a user process doesn’t harm others?"
-  },
-  {
-    "objectID": "day1.html#dual-mode-operation",
-    "href": "day1.html#dual-mode-operation",
-    "title": "CSC 453",
-    "section": "Dual-mode operation",
-    "text": "Dual-mode operation\n\nDual-mode operation allows OS to protect itself and components\n\nUser mode and kernel mode\n\nMode bit provided by hardware\n\nProvides ability to distinguish when system is running user code or kernel code.\nWhen a user is running → mode bit is “user”\nWhen kernel code is executing → mode bit is “kernel”\n\nSystem call changes mode to kernel, return from call resets it to user\nSome instructions are only executable in kernel mode"
-  },
-  {
-    "objectID": "day1.html#system-calls",
-    "href": "day1.html#system-calls",
-    "title": "CSC 453",
-    "section": "System calls",
-    "text": "System calls\n\nThe OS offers a number of services. How do we (applications) interface with them?\n\nWe don’t want to deal with the details, just the abstraction\nThe OS has ultimate control over these operations\n\nSystem calls are the “language” of communication with the OS\nStandards\n\nWin32 (MS)\nPOSIX (nearly all Unix-based systems)\nJava API for the JVM"
-  },
-  {
-    "objectID": "day1.html#system-calls-contd",
-    "href": "day1.html#system-calls-contd",
-    "title": "CSC 453",
-    "section": "System calls (cont’d)",
-    "text": "System calls (cont’d)\n\nLike a function call, we push arguments onto the stack, then we call into the library that provides the system call\nEach system call has a special number, placed into a register\nExecutes a TRAP instruction (switch to kernel mode)\nA logical separation of memory space\nKernel’s system call handler is invoked, once done (but may block) may be returned to the process"
-  },
-  {
-    "objectID": "day1.html#system-calls-contd-1",
-    "href": "day1.html#system-calls-contd-1",
-    "title": "CSC 453",
-    "section": "System calls (cont’d)",
-    "text": "System calls (cont’d)\n\nTable defined in the kernel: https://github.com/torvalds/linux/blob/master/arch/x86/entry/syscalls/syscall_32.tbl\nYou can run using the table values themselves using the syscall() wrapper\n\nQ: why does syscall() exist?\nIf you’re interested… There are debates https://lwn.net/Articles/771441/"
-  },
-  {
-    "objectID": "day1.html#section-5",
-    "href": "day1.html#section-5",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
-    "objectID": "day1.html#slosh",
-    "href": "day1.html#slosh",
-    "title": "CSC 453",
-    "section": "SLOsh",
-    "text": "SLOsh\n\nThis assignment should be a refresher of 357 topics\nYour shell will support:\n\nbasic command execution\nbuilt-in commands\nsignal handling\nI/O redirection\npiping"
-  },
-  {
-    "objectID": "day1.html#requirements",
-    "href": "day1.html#requirements",
-    "title": "CSC 453",
-    "section": "Requirements",
-    "text": "Requirements\n\nC99 POSIX\nMust compile / run on the unix* servers\nYou must create a functional Makefile\nSubmit a tar (.tgz) file in Canvas"
-  },
-  {
-    "objectID": "day1.html#command-execution",
-    "href": "day1.html#command-execution",
-    "title": "CSC 453",
-    "section": "Command execution",
-    "text": "Command execution\n\nExecute external commands\n\nUse fork(), exec(), and waitpid() to manage process execution\n\nSupport command-line arguments\nHandle both relative and absolute paths to executables\nReport command execution errors appropriately"
-  },
-  {
-    "objectID": "day1.html#redirection-piping",
-    "href": "day1.html#redirection-piping",
-    "title": "CSC 453",
-    "section": "Redirection / piping",
-    "text": "Redirection / piping\n\nUse open(), dup2(), and close() for file redirection\nUse pipe() for creating pipes between processes"
-  },
-  {
-    "objectID": "day1.html#signal-handling",
-    "href": "day1.html#signal-handling",
-    "title": "CSC 453",
-    "section": "Signal handling",
-    "text": "Signal handling\n\nSignals are async. They can happen at any time\nCertain functions are async-safe, others are not\n\nprintf() contains internal buffers and state; an interruption can lead to corrupted buffers"
-  },
-  {
-    "objectID": "day1.html#handling-sigint",
-    "href": "day1.html#handling-sigint",
-    "title": "CSC 453",
-    "section": "Handling SIGINT",
-    "text": "Handling SIGINT\n\nwrite() a newline or whatever to signify the signal was caught.\nIf there is not a child running, write() a new prompt\nWhy not just use display_prompt()?\n\nIf it’s using write() it could be fine. If it’s using printf() it isn’t"
-  },
-  {
-    "objectID": "day1.html#parent-vs-child",
-    "href": "day1.html#parent-vs-child",
-    "title": "CSC 453",
-    "section": "Parent vs child",
-    "text": "Parent vs child\n\nThe child should immediately reset signal handling to the default\nLook up signal()’s man\nman 2 signal"
-  },
-  {
-    "objectID": "day1.html#sigaction",
-    "href": "day1.html#sigaction",
-    "title": "CSC 453",
-    "section": "Sigaction",
-    "text": "Sigaction\n\nsigaction() is newer than signal()\nOffers more control and is more consistent across systems\nAllows specifying flags\n\nSA_RESTART (man 7 signal)\n\nWithout it, syscalls return with EINTR error if they are interrupted by a signal\nWith it, most syscalls automatically restart\n\n\nIs the POSIX-compliant approach\nEINTR can still happen, it’s wise to check for it and handle it\n\nWhen reading input from user"
   }
 ]
