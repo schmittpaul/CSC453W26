@@ -145,54 +145,5 @@
     "title": "CSC 453",
     "section": "",
     "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
-    "objectID": "day1.html#questions-to-consider-2",
-    "href": "day1.html#questions-to-consider-2",
-    "title": "CSC 453",
-    "section": "Questions to consider",
-    "text": "Questions to consider\n\nHow does the OS manage access to resources?"
-  },
-  {
-    "objectID": "day1.html#os-as-a-resource-manager",
-    "href": "day1.html#os-as-a-resource-manager",
-    "title": "CSC 453",
-    "section": "OS as a resource manager",
-    "text": "OS as a resource manager\n\nAnother view: resource manager - shares resources “well”\nAdvantages of the OS managing resources?\n\nProtect applications from one another\nProvide efficient access to resources (cost, time, energy)\nProvide fair access to resources\n\nChallenges?\n\nWhat are the correct mechanisms?\nWhat are the correct policies?"
-  },
-  {
-    "objectID": "day1.html#resources-are-managed-via-services",
-    "href": "day1.html#resources-are-managed-via-services",
-    "title": "CSC 453",
-    "section": "Resources are managed via services",
-    "text": "Resources are managed via services\n\nProgram Execution (loading, running, monitoring, terminating)\nPerformance (optimizing resources under constraints)\nCorrectness (overseeing critical operations, preventing interference)\nFairness (access to and allocation of resources)\nError detection & recovery (network partition & media failure)"
-  },
-  {
-    "objectID": "day1.html#services-contd",
-    "href": "day1.html#services-contd",
-    "title": "CSC 453",
-    "section": "Services (cont’d)",
-    "text": "Services (cont’d)\n\nCommunication (inter-process, software-to-hardware, hardware-to-hardware, system-to-system, wide-area)\nI/O: reading & writing, support for various mediums, devices, performance, and protections\nData Organization (naming), Services (search) & Protection (access control)\nSecurity (isolation, enforcement, services, authentication, accounting and logging, trust)\nUser interfaces (command-line, GUIs, multiple users)"
-  },
-  {
-    "objectID": "day1.html#each-service-has-challenges-and-tensions",
-    "href": "day1.html#each-service-has-challenges-and-tensions",
-    "title": "CSC 453",
-    "section": "Each service has challenges and tensions",
-    "text": "Each service has challenges and tensions\nExample 1: We have limited RAM, and we want to run more programs that can be stored.\n\nHow do we allocate space?\nWho stays?\nWho goes?\nWhat if we’re wrong?\nWhat if the system is under extremely heavy load?\nIs there a way to predict the future?"
-  },
-  {
-    "objectID": "day1.html#each-service-has-challenges-and-tensions-1",
-    "href": "day1.html#each-service-has-challenges-and-tensions-1",
-    "title": "CSC 453",
-    "section": "Each service has challenges and tensions",
-    "text": "Each service has challenges and tensions\nExample 2: We have two process (producer / consumer); how do they communicate?\n\nMessage passing? Shared memory?\nHow do they synchronize?\n\nHow to we prevent over-production? Over-consumption?\nContext-switching?"
-  },
-  {
-    "objectID": "day1.html#section-3",
-    "href": "day1.html#section-3",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
   }
 ]
