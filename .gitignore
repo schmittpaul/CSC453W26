@@ -82,3 +82,4 @@ slides/docs/site_libs/revealjs/plugin/search/search.js
 slides/docs/site_libs/revealjs/plugin/zoom/plugin.js
 slides/docs/site_libs/revealjs/plugin/zoom/zoom.esm.js
 slides/docs/site_libs/revealjs/plugin/zoom/zoom.js
+slides/_quarto.yml
