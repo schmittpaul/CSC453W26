@@ -490,55 +490,6 @@
     "text": "What isn’t clear?\nComments? Thoughts?"
   },
   {
-    "objectID": "day3.html#questions-to-consider-3",
-    "href": "day3.html#questions-to-consider-3",
-    "title": "CSC 453",
-    "section": "Questions to consider",
-    "text": "Questions to consider\n\nWhich system calls are related to process management and lifecycles?\nHow does the process hierarchy work?\nWhat are zombies and orphans? Why do zombies exist?"
-  },
-  {
-    "objectID": "day3.html#unix-process-apis",
-    "href": "day3.html#unix-process-apis",
-    "title": "CSC 453",
-    "section": "UNIX process APIs",
-    "text": "UNIX process APIs\n\nfork() creates a new child process\n\nAll processes are created by forking from a parent\nThe init process is ancestor of all processes\n\nRun pstree in a terminal to see\n\n\nexec() makes a process execute a given executable (effectively replaces the process)\nexit() terminates a process\nwait() causes a parent to block until child terminates\nMany variants exist of the above system calls with different arguments"
-  },
-  {
-    "objectID": "day3.html#what-happens-during-a-fork",
-    "href": "day3.html#what-happens-during-a-fork",
-    "title": "CSC 453",
-    "section": "What happens during a fork()?",
-    "text": "What happens during a fork()?\n\nA new process is created by making a copy of parent’s memory image\nBoth parent and child have unique address spaces (isolated from each other, allowing for independent processing)\nThe new process is added to the OS process list and scheduled\nParent and child start execution just after fork (with different return values)\nParent and child execute and modify the memory data independently"
-  },
-  {
-    "objectID": "day3.html#process-creation",
-    "href": "day3.html#process-creation",
-    "title": "CSC 453",
-    "section": "Process creation",
-    "text": "Process creation\n\nDifferent execution models\n\nParent & child may execute independently\nParent may wait for child\nChild may create more children (Process hierarchies)\nParent may kill children\n\nChild often invokes exec() to change its memory image to a new program\nWhy two steps (fork() then exec())?\n\nAllows the child to change file descriptors and other settings before exec()"
-  },
-  {
-    "objectID": "day3.html#process-destruction",
-    "href": "day3.html#process-destruction",
-    "title": "CSC 453",
-    "section": "Process destruction",
-    "text": "Process destruction\n\nSome operating systems do not allow child to exist if its parent has terminated. If a process terminates, then all its children must also be terminated\n\nCascading termination: All children, grandchildren, etc., are terminated.\nThe termination is initiated by the operating system\n\nThe parent process may wait for termination of a child process by using the wait() system call. The call returns status information and the pid of the terminated process\npid = wait(&status);"
-  },
-  {
-    "objectID": "day3.html#zombies-and-orphans",
-    "href": "day3.html#zombies-and-orphans",
-    "title": "CSC 453",
-    "section": "Zombies and orphans",
-    "text": "Zombies and orphans\n\n\n\nIf no parent waiting (did not invoke wait()), and process completes, process is a zombie\n\nZombie = dead but not yet reaped (exit status hasn’t been read)\nStill has an entry in the process table\nWe need zombies: so the kernel can preserve a child’s exit status until the parent calls wait(), even if the child exits first\n\nIf parent terminated without invoking wait(), process is an orphan\n\nOrphan = alive but parent is gone\ninit benevolently adopts orphans\n\n\n\n\n\n\n\n\nChild exits → zombie\nParent exits → zombie becomes orphan\ninit adopts it → init calls wait() → zombie disappears"
-  },
-  {
-    "objectID": "day3.html#section-3",
-    "href": "day3.html#section-3",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
     "objectID": "day1.html#who-am-i",
     "href": "day1.html#who-am-i",
     "title": "CSC 453",
