@@ -63,6 +63,475 @@
     "text": "What isn’t clear?\nComments? Thoughts?"
   },
   {
+    "objectID": "day4.html#admin",
+    "href": "day4.html#admin",
+    "title": "CSC 453",
+    "section": "Admin",
+    "text": "Admin\n\nQuiz 2 due Friday\nLab 2 due Monday\nSLOsh due Monday\nNo class/lab Tuesday"
+  },
+  {
+    "objectID": "day4.html#questions-to-consider",
+    "href": "day4.html#questions-to-consider",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhich system calls are related to process management and lifecycles?\nHow does the process hierarchy work?\nWhat are zombies and orphans? Why do zombies exist?"
+  },
+  {
+    "objectID": "day4.html#unix-process-apis",
+    "href": "day4.html#unix-process-apis",
+    "title": "CSC 453",
+    "section": "UNIX process APIs",
+    "text": "UNIX process APIs\n\nfork() creates a new child process\n\nAll processes are created by forking from a parent\nThe init process is ancestor of all processes\n\nRun pstree in a terminal to see\n\n\nexec() makes a process execute a given executable (effectively replaces the process)\nexit() terminates a process\nwait() causes a parent to block until child terminates\nMany variants exist of the above system calls with different arguments"
+  },
+  {
+    "objectID": "day4.html#what-happens-during-a-fork",
+    "href": "day4.html#what-happens-during-a-fork",
+    "title": "CSC 453",
+    "section": "What happens during a fork()?",
+    "text": "What happens during a fork()?\n\nA new process is created by making a copy of parent’s memory image\nBoth parent and child have unique address spaces (isolated from each other, allowing for independent processing)\nThe new process is added to the OS process list and scheduled\nParent and child start execution just after fork (with different return values)\nParent and child execute and modify the memory data independently"
+  },
+  {
+    "objectID": "day4.html#process-creation",
+    "href": "day4.html#process-creation",
+    "title": "CSC 453",
+    "section": "Process creation",
+    "text": "Process creation\n\nDifferent execution models\n\nParent & child may execute independently\nParent may wait for child\nChild may create more children (Process hierarchies)\nParent may kill children\n\nChild often invokes exec() to change its memory image to a new program\nWhy two steps (fork() then exec())?\n\nAllows the child to change file descriptors and other settings before exec()"
+  },
+  {
+    "objectID": "day4.html#process-destruction",
+    "href": "day4.html#process-destruction",
+    "title": "CSC 453",
+    "section": "Process destruction",
+    "text": "Process destruction\n\nSome operating systems do not allow child to exist if its parent has terminated. If a process terminates, then all its children must also be terminated\n\nCascading termination: All children, grandchildren, etc., are terminated.\nThe termination is initiated by the operating system\n\nThe parent process may wait for termination of a child process by using the wait() system call. The call returns status information and the pid of the terminated process\npid = wait(&status);"
+  },
+  {
+    "objectID": "day4.html#zombies-and-orphans",
+    "href": "day4.html#zombies-and-orphans",
+    "title": "CSC 453",
+    "section": "Zombies and orphans",
+    "text": "Zombies and orphans\n\n\n\nIf no parent waiting (did not invoke wait()), and process completes, process is a zombie\n\nZombie = dead but not yet reaped (exit status hasn’t been read)\nStill has an entry in the process table\nWe need zombies: so the kernel can preserve a child’s exit status until the parent calls wait(), even if the child exits first\n\nIf parent terminated without invoking wait(), process is an orphan\n\nOrphan = alive but parent is gone\ninit benevolently adopts orphans\n\n\n\n\n\n\n\n\nChild exits → zombie\nParent exits → zombie becomes orphan\ninit adopts it → init calls wait() → zombie disappears"
+  },
+  {
+    "objectID": "day4.html#section",
+    "href": "day4.html#section",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day4.html#questions-to-consider-1",
+    "href": "day4.html#questions-to-consider-1",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat are namespaces and cgroups?\nHow do they differ from virtual machines?\nHow do containers use them to isolate processes?"
+  },
+  {
+    "objectID": "day4.html#isolation-without-full-virtualization",
+    "href": "day4.html#isolation-without-full-virtualization",
+    "title": "CSC 453",
+    "section": "Isolation without full virtualization",
+    "text": "Isolation without full virtualization\n\nVirtual machines provide complete isolation by emulating entire hardware + OS\n\nHeavier resource overhead (multiple OS instances)\nBetter isolation between workloads\n\nContainers provide lightweight isolation using OS-level mechanisms\n\nShare the same kernel\nMuch lower overhead than VMs\nLinux kernel provides the building blocks: namespaces and cgroups"
+  },
+  {
+    "objectID": "day4.html#namespaces-logical-isolation",
+    "href": "day4.html#namespaces-logical-isolation",
+    "title": "CSC 453",
+    "section": "Namespaces: logical isolation",
+    "text": "Namespaces: logical isolation\n\nNamespaces partition global system resources so they appear as separate isolated instances\nEach process belongs to a namespace and only sees resources in that namespace\nTypes of namespaces:\n\nPID: process IDs (what processes can a process see?)\nNetwork: network interfaces, ports, routing tables\nMount: filesystem mounts (what can a process access?)\nIPC: IPC objects, message queues\nUTS: hostname and domain name\nUser: user and group IDs (who owns the process?)"
+  },
+  {
+    "objectID": "day4.html#namespaces-example",
+    "href": "day4.html#namespaces-example",
+    "title": "CSC 453",
+    "section": "Namespaces example",
+    "text": "Namespaces example\n\nTwo processes in separate PID namespaces think they are PID 1 (init)\nEach sees only processes within their own namespace\nFrom the host OS perspective, they have different global PIDs\nEnables the illusion that each container has its own isolated process tree"
+  },
+  {
+    "objectID": "day4.html#seeing-namespaces-in-action",
+    "href": "day4.html#seeing-namespaces-in-action",
+    "title": "CSC 453",
+    "section": "Seeing namespaces in action",
+    "text": "Seeing namespaces in action\n\nView namespaces a process belongs to:\nls -l /proc/self/ns/\nUse unshare to create a new PID namespace:\nunshare -pf --mount-proc bash      # creates new PID namespace, your shell is PID 1\nps aux               # only sees processes in this namespace\nexit                 # back to host namespace\nCompare namespace inodes before and after (same inode = same namespace):\nls -i /proc/self/ns/pid\nunshare -pf --mount-proc bash -c 'ls -i /proc/self/ns/pid'  # different inode"
+  },
+  {
+    "objectID": "day4.html#cgroups-resource-limits",
+    "href": "day4.html#cgroups-resource-limits",
+    "title": "CSC 453",
+    "section": "Cgroups: resource limits",
+    "text": "Cgroups: resource limits\n\ncgroups (control groups) limit, prioritize, and account for resource usage of process groups\nKey capabilities:\n\nCPU limits: restrict how much CPU time a group can use\nMemory limits: cap memory usage; OOM killer invoked if exceeded\nI/O limits: restrict disk I/O bandwidth\nDevice access: restrict which devices a process can access\n\nAll processes in a cgroup share the same resource limitations"
+  },
+  {
+    "objectID": "day4.html#seeing-cgroups-in-action",
+    "href": "day4.html#seeing-cgroups-in-action",
+    "title": "CSC 453",
+    "section": "Seeing cgroups in action",
+    "text": "Seeing cgroups in action\n\nView what cgroup a process belongs to:\ncat /proc/self/cgroup\nCheck your current limits:\ncat /proc/self/limits  # shows per-process limits (some enforced by cgroups)\nIn practice, cgroups are invisible to users, kernel enforces limits automatically when a process exceeds allocated resources"
+  },
+  {
+    "objectID": "day4.html#cgroups-vs.-namespaces",
+    "href": "day4.html#cgroups-vs.-namespaces",
+    "title": "CSC 453",
+    "section": "Cgroups vs. namespaces",
+    "text": "Cgroups vs. namespaces\n\nNamespaces: about visibility—what can a process see?\n\nLogical isolation of resources\n\ncgroups: about limits—how much can a process use?\n\nResource accounting and enforcement\n\nTogether: processes appear isolated AND are prevented from consuming excessive resources"
+  },
+  {
+    "objectID": "day4.html#containers-as-a-building-block",
+    "href": "day4.html#containers-as-a-building-block",
+    "title": "CSC 453",
+    "section": "Containers as a building block",
+    "text": "Containers as a building block\n\ncgroups and namespaces are mechanisms, containers allow us to apply policy by defining how we’ll use them\nContainers combine namespaces + cgroups + layered filesystems\nResults in lightweight, portable process isolation\nSingle kernel, multiple isolated environments\nMuch cheaper than VMs, but with less isolation guarantees"
+  },
+  {
+    "objectID": "day4.html#section-1",
+    "href": "day4.html#section-1",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day4.html#questions-to-consider-2",
+    "href": "day4.html#questions-to-consider-2",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat are the two main strategies for IPC?\nHow do they differ?\nIn what situations would you choose one over the other?"
+  },
+  {
+    "objectID": "day4.html#processes-give-us-a-protection-boundary",
+    "href": "day4.html#processes-give-us-a-protection-boundary",
+    "title": "CSC 453",
+    "section": "Processes give us a protection boundary",
+    "text": "Processes give us a protection boundary\n\nThe operating system is responsible for isolating processes from each other\nWhat you do in your own process is your own business but it shouldn’t be able to crash the machine or affect other processes, or at least processes started by other users\nThus: safe intra-process communication is your problem; safe inter-process communication is an operating system problem"
+  },
+  {
+    "objectID": "day4.html#why-do-we-need-ipc-what-are-the-benefits",
+    "href": "day4.html#why-do-we-need-ipc-what-are-the-benefits",
+    "title": "CSC 453",
+    "section": "Why do we need IPC? What are the benefits?",
+    "text": "Why do we need IPC? What are the benefits?\n\nData Sharing: IPC allows processes to share data efficiently, which is crucial for applications requiring real-time data exchange\nModularity: It promotes modularity by enabling different parts of a system to communicate, making the system easier to manage and scale\nResource Utilization: IPC can help optimize resource utilization by allowing processes to coordinate their use of shared resources\nConcurrency (scalability): It supports concurrent execution of processes, improving the overall performance and responsiveness of applications"
+  },
+  {
+    "objectID": "day4.html#what-are-the-disadvantages-of-ipc",
+    "href": "day4.html#what-are-the-disadvantages-of-ipc",
+    "title": "CSC 453",
+    "section": "What are the disadvantages of IPC?",
+    "text": "What are the disadvantages of IPC?\n\nComplexity: Implementing IPC can add complexity to the system, requiring careful design and management to avoid issues like deadlocks and race conditions\nOverhead: IPC mechanisms can introduce overhead, potentially impacting performance, especially if the communication is frequent or involves large amounts of data\nSecurity: Ensuring secure IPC can be challenging, as it involves protecting data from unauthorized access and ensuring the integrity of the communication\nDebugging: Debugging IPC-related issues can be difficult, as problems may arise from interactions between multiple processes, making them harder to isolate and resolve"
+  },
+  {
+    "objectID": "day4.html#what-are-the-two-main-categories-of-ipc",
+    "href": "day4.html#what-are-the-two-main-categories-of-ipc",
+    "title": "CSC 453",
+    "section": "What are the two main categories of IPC?",
+    "text": "What are the two main categories of IPC?\n\nMessage passing\n\nHigh-level abstraction for exchanging packets of information over some interconnect\n\nShared memory\n\nRegion of memory available to different processes; writable by at least one process"
+  },
+  {
+    "objectID": "day4.html#message-passing",
+    "href": "day4.html#message-passing",
+    "title": "CSC 453",
+    "section": "Message passing",
+    "text": "Message passing\n\nKernel establishes and oversees all communication\n\nProcess copies data to buffer, then issue system call to request transfer\nKernel copies data into its memory\nLater, process issues system call to retrieve\n\nTwo primitives: send() and recv()\nBeyond intra-computer communication, facilitates processes over a network; link implementation is unimportant"
+  },
+  {
+    "objectID": "day4.html#pros-and-cons-of-message-passing",
+    "href": "day4.html#pros-and-cons-of-message-passing",
+    "title": "CSC 453",
+    "section": "Pros and cons of message passing?",
+    "text": "Pros and cons of message passing?\n\nPros:\n\nEasier to implement and manage, especially in distributed systems\nProvides clear boundaries between processes, enhancing security and modularity\n\nCons:\n\nCan introduce overhead due to the need for message formatting and transmission\nMay be slower compared to shared memory for large volumes of data"
+  },
+  {
+    "objectID": "day4.html#message-passing-considerations",
+    "href": "day4.html#message-passing-considerations",
+    "title": "CSC 453",
+    "section": "Message passing considerations",
+    "text": "Message passing considerations\n\nSynchronization: should send() and recv() block or not?\nBuffering: how much and how long do we store messages?\nOverhead: every message requires two system calls (send() & recv()); passing a message is slower than controlling access to shared memory (messages are copied)\nReliability: e.g., acknowledgement in the face of lost messages; out-of-order of delivery\nAuthentication of messages"
+  },
+  {
+    "objectID": "day4.html#shared-memory",
+    "href": "day4.html#shared-memory",
+    "title": "CSC 453",
+    "section": "Shared memory",
+    "text": "Shared memory\n\nKernel plays a role in establishing and attaching the address space, but does not control read/write access beyond that\nHow the memory is shared, and kept consistent, is left up to the processes"
+  },
+  {
+    "objectID": "day4.html#pros-and-cons-of-shared-memory",
+    "href": "day4.html#pros-and-cons-of-shared-memory",
+    "title": "CSC 453",
+    "section": "Pros and cons of shared memory?",
+    "text": "Pros and cons of shared memory?\n\nPros:\n\nOffers high-speed data exchange, as processes can directly read and write to the shared memory\nEfficient for large volumes of data\n\nCons:\n\nRequires careful synchronization to avoid conflicts and ensure data consistency\nCan be more complex to implement and debug"
+  },
+  {
+    "objectID": "day4.html#message-passing-vs.-shared-memory",
+    "href": "day4.html#message-passing-vs.-shared-memory",
+    "title": "CSC 453",
+    "section": "Message passing vs. shared memory",
+    "text": "Message passing vs. shared memory\n\n\n\nWhich do you choose?\n\nIf you have few messages?\nIf you have millions?\nIf you need to communicate across systems?\nIf you need in-order delivery but don’t want to code it yourself?\n\nConsiderations:\n\nCost to establish\nCost per message\n\n\n\n\n\n “Gemini, make an image in the style of a video game pitting pipes versus shared memory”"
+  },
+  {
+    "objectID": "day4.html#section-2",
+    "href": "day4.html#section-2",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day4.html#questions-to-consider-3",
+    "href": "day4.html#questions-to-consider-3",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nHow do pipes differ from FIFOs and when would you use each?\nWhat considerations matter when choosing between pipes, FIFOs, and memory-mapped files?"
+  },
+  {
+    "objectID": "day4.html#ipc-taxonomy",
+    "href": "day4.html#ipc-taxonomy",
+    "title": "CSC 453",
+    "section": "IPC taxonomy",
+    "text": "IPC taxonomy"
+  },
+  {
+    "objectID": "day4.html#pipes-anonymous-pipes",
+    "href": "day4.html#pipes-anonymous-pipes",
+    "title": "CSC 453",
+    "section": "Pipes (anonymous pipes)",
+    "text": "Pipes (anonymous pipes)\n\nPipes are unidirectional; one end must be designated as the reading end and the other as the writing end\nPipes are order preserving; all data read from the receiving end of the pipe will match the order in which it was written into the pipe\nPipes have a limited capacity and they use blocking I/O; if a pipe is full, any additional writes to the pipe will block the process until some of the data has been read\nPipes send data as unstructured byte streams. There are no pre-defined characteristics to the data exchanged, such as a predictable message length"
+  },
+  {
+    "objectID": "day4.html#pipes-contd",
+    "href": "day4.html#pipes-contd",
+    "title": "CSC 453",
+    "section": "Pipes (cont’d)",
+    "text": "Pipes (cont’d)\n\nPipes create a producer-consumer buffer between two processes\nCannot be accessed outside of the creating process (child inherits the pipe since it’s a fd)\nThe operating system manages a queue for each pipe to accommodate different input and output rates\nFacilitates the canonical chaining together of small UNIX utilities to do more sophisticated processing"
+  },
+  {
+    "objectID": "day4.html#named-pipes-also-known-as-fifos",
+    "href": "day4.html#named-pipes-also-known-as-fifos",
+    "title": "CSC 453",
+    "section": "Named pipes (also known as FIFOs)",
+    "text": "Named pipes (also known as FIFOs)\n\nOf course there is another type that don’t share the same characteristics\nNamed pipes are bidirectional, don’t have the parent-child relationship\n\nCreates a persistent file-like name\nRequire a reader and writer"
+  },
+  {
+    "objectID": "day4.html#named-pipes-contd",
+    "href": "day4.html#named-pipes-contd",
+    "title": "CSC 453",
+    "section": "Named pipes (cont’d)",
+    "text": "Named pipes (cont’d)\n\nReally a data stream (ordering, buffering, reliability, authentication all implied)\nThey are NOT regular files, though they look like them\n\nOnce data has been read from a FIFO, the data is discarded and cannot be read again\nCannot broadcast: only one read()\nNOT wise to use bidirectionally, why?"
+  },
+  {
+    "objectID": "day4.html#shared-memory-with-mmap",
+    "href": "day4.html#shared-memory-with-mmap",
+    "title": "CSC 453",
+    "section": "Shared memory with mmap",
+    "text": "Shared memory with mmap\n\n\n\nMemory-mapped files allow for multiple processes to share read-only access to a common file. Example: libc.so mapped into all running C programs\nMemory-mapped files bypass the kernel’s buffer cache (as done with a normal read()), and the data is copied directly into the user-mode portion of memory\n\n\n\n\n\n\n\nProvide extremely fast IPC data exchange. i.e., when one process writes to the region, that data is immediately accessible by the other process without having to invoke a system call\nUnlike pipes, memory-mapped files create persistent IPC. Once the data is written to the shared region, it can be repeatedly accessed by other processes"
+  },
+  {
+    "objectID": "day4.html#memory-mapped-files-posix-and-system-v",
+    "href": "day4.html#memory-mapped-files-posix-and-system-v",
+    "title": "CSC 453",
+    "section": "Memory mapped files: POSIX and System V",
+    "text": "Memory mapped files: POSIX and System V\n\nThese two ultimately mmap a file, but do some trickery beforehand and use special files\nPOSIX == named, RAM-backed file descriptors\n\nname → fd → mmap\nObject survives until the last reference is gone\nusually backed by tmpfs (/dev/shm)\n\nSystem V shared memory\n\nPredates POSIX - designed before file descriptors were a universal abstraction\nKernel-persistent objects, you must clean up manually\n\nProcess exits ≠ memory freed"
+  },
+  {
+    "objectID": "day4.html#posix-vs.-system-v",
+    "href": "day4.html#posix-vs.-system-v",
+    "title": "CSC 453",
+    "section": "POSIX vs. System V",
+    "text": "POSIX vs. System V\n\nPOSIX is great, right!?\n\nPOSIX (e.g., shm_open()) IPC may not work in your favor in macOS\nSome evil engineer decided to provide the header files for certain things, but they are empty stubs\n\nIt will compile, but could be bad\n\n\nSystem V is “fine”\n\nshmget(): allocate\nshmat(): attach\nshmdt(): detach\nshmctl(): control (destroy with IPC_RMID)"
+  },
+  {
+    "objectID": "day4.html#other-ipc-signals",
+    "href": "day4.html#other-ipc-signals",
+    "title": "CSC 453",
+    "section": "“Other” IPC: signals",
+    "text": "“Other” IPC: signals\n\nSignals are a limited form of asynchronous communication between processes\nProcesses can register a signal handler to run when a signal is received\nUsers can send signals to processes owned by them; the super-user can send a signal to any process\nProcesses can ignore many signals\n\nSIGKILL is a notable exception; used for non-graceful termination\nSIGTERM is used for graceful shutdown"
+  },
+  {
+    "objectID": "day4.html#other-ipc-return-codes",
+    "href": "day4.html#other-ipc-return-codes",
+    "title": "CSC 453",
+    "section": "“Other” IPC: return codes",
+    "text": "“Other” IPC: return codes\n\nSimplest, most limited form of IPC\nAllows processes to return a single int to the process that created them\n0 typically indicates success; non-0, failure.\nAnalogous to older computers that would transform a set of punch cards into a “result.”\n\nbash exposes return codes as $?\nCan print the return code for the last process: echo $?"
+  },
+  {
+    "objectID": "day4.html#section-3",
+    "href": "day4.html#section-3",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day3.html#admin",
+    "href": "day3.html#admin",
+    "title": "CSC 453",
+    "section": "Admin",
+    "text": "Admin\n\nLab 1 due tonight\n\nWindows users: there are some settings to make the VM work if you missed lab\n\nProgramming assignment 1 due next Monday"
+  },
+  {
+    "objectID": "day3.html#questions-to-consider",
+    "href": "day3.html#questions-to-consider",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nHow do we ensure that a user process doesn’t harm others?\nHow do system calls work? How do they related to wrapper libraries like glibc?"
+  },
+  {
+    "objectID": "day3.html#dual-mode-operation",
+    "href": "day3.html#dual-mode-operation",
+    "title": "CSC 453",
+    "section": "Dual-mode operation",
+    "text": "Dual-mode operation\n\nDual-mode operation allows OS to protect itself and components\n\nUser mode and kernel mode\n\nMode bit provided by hardware\n\nProvides ability to distinguish when system is running user code or kernel code.\nWhen a user is running → mode bit is “user”\nWhen kernel code is executing → mode bit is “kernel”\n\nSystem call changes mode to kernel, return from call resets it to user\nSome instructions are only executable in kernel mode"
+  },
+  {
+    "objectID": "day3.html#system-calls",
+    "href": "day3.html#system-calls",
+    "title": "CSC 453",
+    "section": "System calls",
+    "text": "System calls\n\nThe OS offers a number of services. How do we (applications) interface with them?\n\nWe don’t want to deal with the details, just the abstraction\nThe OS has ultimate control over these operations\n\nSystem calls are the “language” of communication with the OS\nStandards\n\nWin32 (MS)\nPOSIX (nearly all Unix-based systems)\nJava API for the JVM"
+  },
+  {
+    "objectID": "day3.html#system-calls-contd",
+    "href": "day3.html#system-calls-contd",
+    "title": "CSC 453",
+    "section": "System calls (cont’d)",
+    "text": "System calls (cont’d)\n\nLike a function call, we push arguments onto the stack, then we call into the library that provides the system call\nEach system call has a special number, placed into a register\nExecutes a TRAP instruction (switch to kernel mode)\nA logical separation of memory space\nKernel’s system call handler is invoked, once done (but may block) may be returned to the process"
+  },
+  {
+    "objectID": "day3.html#system-calls-contd-1",
+    "href": "day3.html#system-calls-contd-1",
+    "title": "CSC 453",
+    "section": "System calls (cont’d)",
+    "text": "System calls (cont’d)\n\nTable defined in the kernel: https://github.com/torvalds/linux/blob/master/arch/x86/entry/ syscalls/syscall_32.tbl\n\nNote that system call tables can differ between architectures\n\nYou can run using the table values themselves using the syscall() wrapper\n\nQ: why does syscall() exist?\nIf you’re interested… There are debates https://lwn.net/Articles/771441/"
+  },
+  {
+    "objectID": "day3.html#section",
+    "href": "day3.html#section",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day3.html#questions-to-consider-1",
+    "href": "day3.html#questions-to-consider-1",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat do processes contain?\nHow does the OS run multiple processes at the same time?\nHow are processes laid out in memory?\nHow does the OS store information about each process?"
+  },
+  {
+    "objectID": "day3.html#processes",
+    "href": "day3.html#processes",
+    "title": "CSC 453",
+    "section": "Processes",
+    "text": "Processes\n\nMost fundamental OS abstraction\n\nProcesses organize information about other abstractions and represent a single thing the computer is “doing”\n\nWhen you run an executable program (passive), the OS creates a process == a running program (active)\nOne program can be multiple processes"
+  },
+  {
+    "objectID": "day3.html#process-organization",
+    "href": "day3.html#process-organization",
+    "title": "CSC 453",
+    "section": "Process organization",
+    "text": "Process organization\n\n\n\nUnlike threads, address spaces and files, processes are not tied to a hardware component. Instead, they contain other abstractions\nProcesses contain:\n\none or more threads,\nan address space, and\nzero or more open file handles representing files"
+  },
+  {
+    "objectID": "day3.html#multiprogramming",
+    "href": "day3.html#multiprogramming",
+    "title": "CSC 453",
+    "section": "Multiprogramming",
+    "text": "Multiprogramming\n\nProcesses are the core abstraction that allows for multiprogramming: the illusion of concurrency\nOS timeshares CPU across multiple processes: virtualizes CPU\nOS has a CPU scheduler that picks one of the many active processes to execute on a CPU\nPolicy:\n\nwhich process to run\n\nMechanism:\n\nhow to context switch between processes"
+  },
+  {
+    "objectID": "day3.html#processs-view-of-the-world",
+    "href": "day3.html#processs-view-of-the-world",
+    "title": "CSC 453",
+    "section": "Process’s view of the world",
+    "text": "Process’s view of the world\n\n\n\nOwn memory with consistent addressing (divorced from physical addressing)\nIt has exclusivity over the CPU: It doesn’t have to worry about scheduling\nConversely, it doesn’t know when it will be scheduled, so real time events require special handling\nHas some identity: pid, gid, uid\nHas a set of services available to it via the OS\n\nData (via file system)\nCommunication (sockets, IPC)\nMore resources (e.g., memory)"
+  },
+  {
+    "objectID": "day3.html#process-memory-layout",
+    "href": "day3.html#process-memory-layout",
+    "title": "CSC 453",
+    "section": "Process memory layout",
+    "text": "Process memory layout\n\n\n\nText segment: machine instructions; shareable between identical processes; read-only\nData segment: for initialized data; e.g., int count = 99;\nBSS (block started by symbol) segment: uninitialized data; e.g., int sum[10];\nHeap: dynamic memory allocation\nStack: initial arguments and environment; stack frames"
+  },
+  {
+    "objectID": "day3.html#oss-view-of-the-process-world",
+    "href": "day3.html#oss-view-of-the-process-world",
+    "title": "CSC 453",
+    "section": "OS’s view of the (process) world",
+    "text": "OS’s view of the (process) world\n\n\n\nData for each process is held in a data structure known as a Process Control Block\nPartitioned memory:\n\ndedicated & shared address space\n\nperhaps non-contiguous\n\nProcess table holds PCBs"
+  },
+  {
+    "objectID": "day3.html#section-1",
+    "href": "day3.html#section-1",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day3.html#questions-to-consider-2",
+    "href": "day3.html#questions-to-consider-2",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat are the different process states and what causes transitions?\nWhat is a context switch?\nWhat are the two general categories of processes and how do they differ?"
+  },
+  {
+    "objectID": "day3.html#process-states",
+    "href": "day3.html#process-states",
+    "title": "CSC 453",
+    "section": "Process states",
+    "text": "Process states\n\nAs a process executes, it changes state\n\nNew: The process is being created\nRunning: Instructions are being executed\nWaiting: The process is waiting for some event (typically I/O or signal handling) to occur\nReady: The process is waiting to be assigned to a processor\nTerminated: The process has finished execution"
+  },
+  {
+    "objectID": "day3.html#process-state-transitions",
+    "href": "day3.html#process-state-transitions",
+    "title": "CSC 453",
+    "section": "Process state transitions",
+    "text": "Process state transitions"
+  },
+  {
+    "objectID": "day3.html#process-state-transitions-contd",
+    "href": "day3.html#process-state-transitions-contd",
+    "title": "CSC 453",
+    "section": "Process state transitions (cont’d)",
+    "text": "Process state transitions (cont’d)\n\n\n\nRunning process can move from running to terminated (exit or killed), moved to ready (time slice up), or blocked (signaled to wait, I/O)\nWhich state transitions could happen with these expensive actions?\n\nCompute a new RSA key?\nFind the largest value in a 1TB of data?\n\n\n\n\n\n\n\n\n\nRunning to Waiting: This transition occurs when a process cannot continue executing until a specific event occurs. Here are some examples:\n\nI/O Operations:\n\nExample: A process needs to read data from a disk. It issues an I/O request and then moves to the Waiting state until the data is read and available.\nReal-World Scenario: A web server process waiting for data to be read from a database.\n\nResource Availability:\n\nExample: A process requires a resource (like a printer) that is currently in use by another process. It moves to the Waiting state until the resource becomes available.\nReal-World Scenario: A document editing application waiting for access to a shared printer.\n\nInter-Process Communication (IPC):\n\nExample: A process is waiting for a message from another process. It moves to the Waiting state until the message is received.\nReal-World Scenario: A chat application waiting for a message from a server.\n\nSynchronization Primitives:\n\nExample: A process is waiting for a lock or semaphore to be released by another process. It moves to the Waiting state until the lock is available.\nReal-World Scenario: A banking application waiting for a transaction lock to be released.\n\n\nRunning to Ready: This transition occurs when a process is preempted by the scheduler, but it is still ready to run as soon as it gets CPU time again. Here are some examples:\n\nTime Slice Expiration:\n\nExample: A process has used up its allocated time slice. The scheduler preempts it and moves it to the Ready state, allowing another process to run.\nReal-World Scenario: A video streaming application being preempted to allow a background update process to run.\n\nHigher Priority Process:\n\nExample: A higher priority process becomes ready to run. The scheduler preempts the current process and moves it to the Ready state.\nReal-World Scenario: An emergency alert system preempting a running media player application.\n\nVoluntary Yield:\n\nExample: A process voluntarily yields the CPU, indicating it can be preempted. The scheduler moves it to the Ready state.\nReal-World Scenario: A background data synchronization process yielding the CPU to allow a user-initiated task to run."
+  },
+  {
+    "objectID": "day3.html#process-scheduling",
+    "href": "day3.html#process-scheduling",
+    "title": "CSC 453",
+    "section": "Process scheduling",
+    "text": "Process scheduling\n\nOS process scheduler selects among available processes for next execution on CPU core\nGoal?\n\nMaximize CPU use, quickly switch processes onto CPU core\n\nMaintains scheduling queues of processes\n\nReady queue: set of all processes residing in main memory, ready and waiting to execute\nWait queues: set of processes waiting for an event (i.e., I/O)\n\nProcesses migrate among the various queues over their lifetime"
+  },
+  {
+    "objectID": "day3.html#context-switching",
+    "href": "day3.html#context-switching",
+    "title": "CSC 453",
+    "section": "Context switching",
+    "text": "Context switching\n\nWhen CPU switches to another process, the system must save the state of the old process and load the saved state for the new process via a context switch\nContext of a process represented in the PCB\nContext-switch time is pure overhead; the system does no useful work while switching\n\nThe more complex the OS and the PCB → the longer the context switch\n\nTime dependent on hardware support\n\nSome hardware provides multiple sets of registers per CPU → multiple contexts loaded at once"
+  },
+  {
+    "objectID": "day3.html#context-switching-overhead",
+    "href": "day3.html#context-switching-overhead",
+    "title": "CSC 453",
+    "section": "Context switching overhead",
+    "text": "Context switching overhead\n\nOn the order of milliseconds\nIf not done intelligently, you can spend more time context-switching than actual processing\nQuestion: Why shouldn’t processes control context switching?\n\n\n\nThey could refuse to give up CPU (processes are greedy)\nThey’re intentionally isolated, and don’t have enough information about other processes\nIt would cause too much complication (every process would have to implement its own context switch code)"
+  },
+  {
+    "objectID": "day3.html#scheduling-basics",
+    "href": "day3.html#scheduling-basics",
+    "title": "CSC 453",
+    "section": "Scheduling basics",
+    "text": "Scheduling basics\n\nScheduler usually makes the transition decisions; hides the details from the process/user\nProcesses often characterized as one of two types by what state they spend most of their time in\n\nI/O bound: work is dependent on I/O; e.g., browser, db, media streaming\nCPU bound: work is dependent on CPU; e.g., scientific apps, cryptography\nWhy does this matter?\n\nUnderstanding which your process is allows for optimization\n\nCPU-bound? Faster CPU, parallelize.\nI/O? Faster I/O devices, use async\n\n\n\nScheduler must balance CPU- & I/O-bound processes\n\nReminder: the goal is to maximize CPU utilization"
+  },
+  {
+    "objectID": "day3.html#aside-multiprocessing-in-mobile",
+    "href": "day3.html#aside-multiprocessing-in-mobile",
+    "title": "CSC 453",
+    "section": "Aside: multiprocessing in mobile",
+    "text": "Aside: multiprocessing in mobile\n\nSome mobile systems (e.g., early versions of iOS) allow only one process to run, others suspended\nDue to screen real estate, user interface limits iOS provides:\n\nSingle foreground process controlled via user interface\nMultiple background processes in memory, running, but not on the display, and with limits\n\nLimits include single, short task, receiving notification of events, specific long-running tasks like audio playback\n\n\nAndroid runs foreground and background, with fewer limits\n\nBackground process uses a service to perform tasks\nService can keep running even if background process is suspended\nService has no user interface, small memory use"
+  },
+  {
+    "objectID": "day3.html#section-2",
+    "href": "day3.html#section-2",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
     "objectID": "day2.html#admin",
     "href": "day2.html#admin",
     "title": "CSC 453",
@@ -310,181 +779,6 @@
   {
     "objectID": "day2.html#section-3",
     "href": "day2.html#section-3",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
-    "objectID": "day3.html#admin",
-    "href": "day3.html#admin",
-    "title": "CSC 453",
-    "section": "Admin",
-    "text": "Admin\n\nLab 1 due tonight\n\nWindows users: there are some settings to make the VM work if you missed lab\n\nProgramming assignment 1 due next Monday"
-  },
-  {
-    "objectID": "day3.html#questions-to-consider",
-    "href": "day3.html#questions-to-consider",
-    "title": "CSC 453",
-    "section": "Questions to consider",
-    "text": "Questions to consider\n\nHow do we ensure that a user process doesn’t harm others?\nHow do system calls work? How do they related to wrapper libraries like glibc?"
-  },
-  {
-    "objectID": "day3.html#dual-mode-operation",
-    "href": "day3.html#dual-mode-operation",
-    "title": "CSC 453",
-    "section": "Dual-mode operation",
-    "text": "Dual-mode operation\n\nDual-mode operation allows OS to protect itself and components\n\nUser mode and kernel mode\n\nMode bit provided by hardware\n\nProvides ability to distinguish when system is running user code or kernel code.\nWhen a user is running → mode bit is “user”\nWhen kernel code is executing → mode bit is “kernel”\n\nSystem call changes mode to kernel, return from call resets it to user\nSome instructions are only executable in kernel mode"
-  },
-  {
-    "objectID": "day3.html#system-calls",
-    "href": "day3.html#system-calls",
-    "title": "CSC 453",
-    "section": "System calls",
-    "text": "System calls\n\nThe OS offers a number of services. How do we (applications) interface with them?\n\nWe don’t want to deal with the details, just the abstraction\nThe OS has ultimate control over these operations\n\nSystem calls are the “language” of communication with the OS\nStandards\n\nWin32 (MS)\nPOSIX (nearly all Unix-based systems)\nJava API for the JVM"
-  },
-  {
-    "objectID": "day3.html#system-calls-contd",
-    "href": "day3.html#system-calls-contd",
-    "title": "CSC 453",
-    "section": "System calls (cont’d)",
-    "text": "System calls (cont’d)\n\nLike a function call, we push arguments onto the stack, then we call into the library that provides the system call\nEach system call has a special number, placed into a register\nExecutes a TRAP instruction (switch to kernel mode)\nA logical separation of memory space\nKernel’s system call handler is invoked, once done (but may block) may be returned to the process"
-  },
-  {
-    "objectID": "day3.html#system-calls-contd-1",
-    "href": "day3.html#system-calls-contd-1",
-    "title": "CSC 453",
-    "section": "System calls (cont’d)",
-    "text": "System calls (cont’d)\n\nTable defined in the kernel: https://github.com/torvalds/linux/blob/master/arch/x86/entry/ syscalls/syscall_32.tbl\n\nNote that system call tables can differ between architectures\n\nYou can run using the table values themselves using the syscall() wrapper\n\nQ: why does syscall() exist?\nIf you’re interested… There are debates https://lwn.net/Articles/771441/"
-  },
-  {
-    "objectID": "day3.html#section",
-    "href": "day3.html#section",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
-    "objectID": "day3.html#questions-to-consider-1",
-    "href": "day3.html#questions-to-consider-1",
-    "title": "CSC 453",
-    "section": "Questions to consider",
-    "text": "Questions to consider\n\nWhat do processes contain?\nHow does the OS run multiple processes at the same time?\nHow are processes laid out in memory?\nHow does the OS store information about each process?"
-  },
-  {
-    "objectID": "day3.html#processes",
-    "href": "day3.html#processes",
-    "title": "CSC 453",
-    "section": "Processes",
-    "text": "Processes\n\nMost fundamental OS abstraction\n\nProcesses organize information about other abstractions and represent a single thing the computer is “doing”\n\nWhen you run an executable program (passive), the OS creates a process == a running program (active)\nOne program can be multiple processes"
-  },
-  {
-    "objectID": "day3.html#process-organization",
-    "href": "day3.html#process-organization",
-    "title": "CSC 453",
-    "section": "Process organization",
-    "text": "Process organization\n\n\n\nUnlike threads, address spaces and files, processes are not tied to a hardware component. Instead, they contain other abstractions\nProcesses contain:\n\none or more threads,\nan address space, and\nzero or more open file handles representing files"
-  },
-  {
-    "objectID": "day3.html#multiprogramming",
-    "href": "day3.html#multiprogramming",
-    "title": "CSC 453",
-    "section": "Multiprogramming",
-    "text": "Multiprogramming\n\nProcesses are the core abstraction that allows for multiprogramming: the illusion of concurrency\nOS timeshares CPU across multiple processes: virtualizes CPU\nOS has a CPU scheduler that picks one of the many active processes to execute on a CPU\nPolicy:\n\nwhich process to run\n\nMechanism:\n\nhow to context switch between processes"
-  },
-  {
-    "objectID": "day3.html#processs-view-of-the-world",
-    "href": "day3.html#processs-view-of-the-world",
-    "title": "CSC 453",
-    "section": "Process’s view of the world",
-    "text": "Process’s view of the world\n\n\n\nOwn memory with consistent addressing (divorced from physical addressing)\nIt has exclusivity over the CPU: It doesn’t have to worry about scheduling\nConversely, it doesn’t know when it will be scheduled, so real time events require special handling\nHas some identity: pid, gid, uid\nHas a set of services available to it via the OS\n\nData (via file system)\nCommunication (sockets, IPC)\nMore resources (e.g., memory)"
-  },
-  {
-    "objectID": "day3.html#process-memory-layout",
-    "href": "day3.html#process-memory-layout",
-    "title": "CSC 453",
-    "section": "Process memory layout",
-    "text": "Process memory layout\n\n\n\nText segment: machine instructions; shareable between identical processes; read-only\nData segment: for initialized data; e.g., int count = 99;\nBSS (block started by symbol) segment: uninitialized data; e.g., int sum[10];\nHeap: dynamic memory allocation\nStack: initial arguments and environment; stack frames"
-  },
-  {
-    "objectID": "day3.html#oss-view-of-the-process-world",
-    "href": "day3.html#oss-view-of-the-process-world",
-    "title": "CSC 453",
-    "section": "OS’s view of the (process) world",
-    "text": "OS’s view of the (process) world\n\n\n\nData for each process is held in a data structure known as a Process Control Block\nPartitioned memory:\n\ndedicated & shared address space\n\nperhaps non-contiguous\n\nProcess table holds PCBs"
-  },
-  {
-    "objectID": "day3.html#section-1",
-    "href": "day3.html#section-1",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
-    "objectID": "day3.html#questions-to-consider-2",
-    "href": "day3.html#questions-to-consider-2",
-    "title": "CSC 453",
-    "section": "Questions to consider",
-    "text": "Questions to consider\n\nWhat are the different process states and what causes transitions?\nWhat is a context switch?\nWhat are the two general categories of processes and how do they differ?"
-  },
-  {
-    "objectID": "day3.html#process-states",
-    "href": "day3.html#process-states",
-    "title": "CSC 453",
-    "section": "Process states",
-    "text": "Process states\n\nAs a process executes, it changes state\n\nNew: The process is being created\nRunning: Instructions are being executed\nWaiting: The process is waiting for some event (typically I/O or signal handling) to occur\nReady: The process is waiting to be assigned to a processor\nTerminated: The process has finished execution"
-  },
-  {
-    "objectID": "day3.html#process-state-transitions",
-    "href": "day3.html#process-state-transitions",
-    "title": "CSC 453",
-    "section": "Process state transitions",
-    "text": "Process state transitions"
-  },
-  {
-    "objectID": "day3.html#process-state-transitions-contd",
-    "href": "day3.html#process-state-transitions-contd",
-    "title": "CSC 453",
-    "section": "Process state transitions (cont’d)",
-    "text": "Process state transitions (cont’d)\n\n\n\nRunning process can move from running to terminated (exit or killed), moved to ready (time slice up), or blocked (signaled to wait, I/O)\nWhich state transitions could happen with these expensive actions?\n\nCompute a new RSA key?\nFind the largest value in a 1TB of data?\n\n\n\n\n\n\n\n\n\nRunning to Waiting: This transition occurs when a process cannot continue executing until a specific event occurs. Here are some examples:\n\nI/O Operations:\n\nExample: A process needs to read data from a disk. It issues an I/O request and then moves to the Waiting state until the data is read and available.\nReal-World Scenario: A web server process waiting for data to be read from a database.\n\nResource Availability:\n\nExample: A process requires a resource (like a printer) that is currently in use by another process. It moves to the Waiting state until the resource becomes available.\nReal-World Scenario: A document editing application waiting for access to a shared printer.\n\nInter-Process Communication (IPC):\n\nExample: A process is waiting for a message from another process. It moves to the Waiting state until the message is received.\nReal-World Scenario: A chat application waiting for a message from a server.\n\nSynchronization Primitives:\n\nExample: A process is waiting for a lock or semaphore to be released by another process. It moves to the Waiting state until the lock is available.\nReal-World Scenario: A banking application waiting for a transaction lock to be released.\n\n\nRunning to Ready: This transition occurs when a process is preempted by the scheduler, but it is still ready to run as soon as it gets CPU time again. Here are some examples:\n\nTime Slice Expiration:\n\nExample: A process has used up its allocated time slice. The scheduler preempts it and moves it to the Ready state, allowing another process to run.\nReal-World Scenario: A video streaming application being preempted to allow a background update process to run.\n\nHigher Priority Process:\n\nExample: A higher priority process becomes ready to run. The scheduler preempts the current process and moves it to the Ready state.\nReal-World Scenario: An emergency alert system preempting a running media player application.\n\nVoluntary Yield:\n\nExample: A process voluntarily yields the CPU, indicating it can be preempted. The scheduler moves it to the Ready state.\nReal-World Scenario: A background data synchronization process yielding the CPU to allow a user-initiated task to run."
-  },
-  {
-    "objectID": "day3.html#process-scheduling",
-    "href": "day3.html#process-scheduling",
-    "title": "CSC 453",
-    "section": "Process scheduling",
-    "text": "Process scheduling\n\nOS process scheduler selects among available processes for next execution on CPU core\nGoal?\n\nMaximize CPU use, quickly switch processes onto CPU core\n\nMaintains scheduling queues of processes\n\nReady queue: set of all processes residing in main memory, ready and waiting to execute\nWait queues: set of processes waiting for an event (i.e., I/O)\n\nProcesses migrate among the various queues over their lifetime"
-  },
-  {
-    "objectID": "day3.html#context-switching",
-    "href": "day3.html#context-switching",
-    "title": "CSC 453",
-    "section": "Context switching",
-    "text": "Context switching\n\nWhen CPU switches to another process, the system must save the state of the old process and load the saved state for the new process via a context switch\nContext of a process represented in the PCB\nContext-switch time is pure overhead; the system does no useful work while switching\n\nThe more complex the OS and the PCB → the longer the context switch\n\nTime dependent on hardware support\n\nSome hardware provides multiple sets of registers per CPU → multiple contexts loaded at once"
-  },
-  {
-    "objectID": "day3.html#context-switching-overhead",
-    "href": "day3.html#context-switching-overhead",
-    "title": "CSC 453",
-    "section": "Context switching overhead",
-    "text": "Context switching overhead\n\nOn the order of milliseconds\nIf not done intelligently, you can spend more time context-switching than actual processing\nQuestion: Why shouldn’t processes control context switching?\n\n\n\nThey could refuse to give up CPU (processes are greedy)\nThey’re intentionally isolated, and don’t have enough information about other processes\nIt would cause too much complication (every process would have to implement its own context switch code)"
-  },
-  {
-    "objectID": "day3.html#scheduling-basics",
-    "href": "day3.html#scheduling-basics",
-    "title": "CSC 453",
-    "section": "Scheduling basics",
-    "text": "Scheduling basics\n\nScheduler usually makes the transition decisions; hides the details from the process/user\nProcesses often characterized as one of two types by what state they spend most of their time in\n\nI/O bound: work is dependent on I/O; e.g., browser, db, media streaming\nCPU bound: work is dependent on CPU; e.g., scientific apps, cryptography\nWhy does this matter?\n\nUnderstanding which your process is allows for optimization\n\nCPU-bound? Faster CPU, parallelize.\nI/O? Faster I/O devices, use async\n\n\n\nScheduler must balance CPU- & I/O-bound processes\n\nReminder: the goal is to maximize CPU utilization"
-  },
-  {
-    "objectID": "day3.html#aside-multiprocessing-in-mobile",
-    "href": "day3.html#aside-multiprocessing-in-mobile",
-    "title": "CSC 453",
-    "section": "Aside: multiprocessing in mobile",
-    "text": "Aside: multiprocessing in mobile\n\nSome mobile systems (e.g., early versions of iOS) allow only one process to run, others suspended\nDue to screen real estate, user interface limits iOS provides:\n\nSingle foreground process controlled via user interface\nMultiple background processes in memory, running, but not on the display, and with limits\n\nLimits include single, short task, receiving notification of events, specific long-running tasks like audio playback\n\n\nAndroid runs foreground and background, with fewer limits\n\nBackground process uses a service to perform tasks\nService can keep running even if background process is suspended\nService has no user interface, small memory use"
-  },
-  {
-    "objectID": "day3.html#section-2",
-    "href": "day3.html#section-2",
     "title": "CSC 453",
     "section": "",
     "text": "What isn’t clear?\nComments? Thoughts?"
