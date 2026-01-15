@@ -91,6 +91,13 @@
     "text": "What happens during a fork()?\n\nA new process is created by making a copy of parent’s memory image\nBoth parent and child have unique address spaces (isolated from each other, allowing for independent processing)\nThe new process is added to the OS process list and scheduled\nParent and child start execution just after fork (with different return values)\nParent and child execute and modify the memory data independently"
   },
   {
+    "objectID": "day4.html#process-management-1",
+    "href": "day4.html#process-management-1",
+    "title": "CSC 453",
+    "section": "Process management",
+    "text": "Process management"
+  },
+  {
     "objectID": "day4.html#process-creation",
     "href": "day4.html#process-creation",
     "title": "CSC 453",
@@ -151,7 +158,7 @@
     "href": "day4.html#seeing-namespaces-in-action",
     "title": "CSC 453",
     "section": "Seeing namespaces in action",
-    "text": "Seeing namespaces in action\n\nView namespaces a process belongs to:\nls -l /proc/self/ns/\nUse unshare to create a new PID namespace:\nunshare -pf --mount-proc bash      # creates new PID namespace, your shell is PID 1\nps aux               # only sees processes in this namespace\nexit                 # back to host namespace\nCompare namespace inodes before and after (same inode = same namespace):\nls -i /proc/self/ns/pid\nunshare -pf --mount-proc bash -c 'ls -i /proc/self/ns/pid'  # different inode"
+    "text": "Seeing namespaces in action\n\nView namespaces a process belongs to:\nls -l /proc/self/ns/\nUse unshare to create a new PID namespace:\nunshare -pf --mount-proc bash      # creates new PID namespace, your shell is PID 1\nps aux               # only sees processes in this namespace\nexit                 # back to host namespace\nps aux               # will show all processes on the host\nCompare namespace inodes before and after (same inode = same namespace):\nls -i /proc/self/ns/pid\nunshare -pf --mount-proc bash -c 'ls -i /proc/self/ns/pid'  # different inode"
   },
   {
     "objectID": "day4.html#cgroups-resource-limits",
@@ -179,7 +186,7 @@
     "href": "day4.html#containers-as-a-building-block",
     "title": "CSC 453",
     "section": "Containers as a building block",
-    "text": "Containers as a building block\n\ncgroups and namespaces are mechanisms, containers allow us to apply policy by defining how we’ll use them\nContainers combine namespaces + cgroups + layered filesystems\nResults in lightweight, portable process isolation\nSingle kernel, multiple isolated environments\nMuch cheaper than VMs, but with less isolation guarantees"
+    "text": "Containers as a building block\n\ncgroups and namespaces are mechanisms, containers allow us to apply policy through orchestration\nContainers (e.g. Docker) combine namespaces + cgroups + layered filesystems\nResults in lightweight, portable process isolation\nSingle kernel, multiple isolated environments\nMuch cheaper than VMs, but with less isolation guarantees"
   },
   {
     "objectID": "day4.html#section-1",
@@ -236,13 +243,6 @@
     "title": "CSC 453",
     "section": "Pros and cons of message passing?",
     "text": "Pros and cons of message passing?\n\nPros:\n\nEasier to implement and manage, especially in distributed systems\nProvides clear boundaries between processes, enhancing security and modularity\n\nCons:\n\nCan introduce overhead due to the need for message formatting and transmission\nMay be slower compared to shared memory for large volumes of data"
-  },
-  {
-    "objectID": "day4.html#message-passing-considerations",
-    "href": "day4.html#message-passing-considerations",
-    "title": "CSC 453",
-    "section": "Message passing considerations",
-    "text": "Message passing considerations\n\nSynchronization: should send() and recv() block or not?\nBuffering: how much and how long do we store messages?\nOverhead: every message requires two system calls (send() & recv()); passing a message is slower than controlling access to shared memory (messages are copied)\nReliability: e.g., acknowledgement in the face of lost messages; out-of-order of delivery\nAuthentication of messages"
   },
   {
     "objectID": "day4.html#shared-memory",
