@@ -1,0 +1,634 @@
+---
+title: CSC 453
+subtitle: Winter 2026 Day 5
+format: 
+  clean-revealjs:
+    self-contained: true
+    incremental: true
+    margin: 0.15 
+    # height: 700   # Optional: Normal height (defaults to 700)
+    # width: 1000   # Optional: Normal width (defaults to 900)
+---
+
+## Admin
+:::{.nonincremental}
+- Quiz 3 due Friday
+- Lab 3 due Monday
+- Programming assignment 2 due Feb 2
+- Midterm question
+:::
+
+# IPC mechanisms {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- How do pipes differ from FIFOs and when would you use each?
+- What considerations matter when choosing between pipes, FIFOs, and memory-mapped files?
+:::
+
+## IPC taxonomy
+:::{.r-stack}
+![](images/ipc_taxonomy.png)
+:::
+
+## Pipes (anonymous pipes)
+- Pipes are [unidirectional]{.alert}; one end must be designated as the reading end and the other as the writing end
+- Pipes are [order preserving]{.alert}; all data read from the receiving end of the pipe will match the order in which it was written into the pipe
+- Pipes have a [limited capacity]{.alert} and they use [blocking I/O]{.alert}; if a pipe is full, any additional writes to the pipe will block the process until some of the data has been read
+- Pipes send data as unstructured [byte streams]{.alert}. There are no pre-defined characteristics to the data exchanged, such as a predictable message length
+  ![](images/anon_pipe.png){.fragment}
+
+## Pipes (cont'd)
+- Pipes create a producer-consumer buffer between two processes
+- Cannot be accessed outside of the creating process (child inherits the pipe since it's a fd)
+- The operating system manages a queue for each pipe to accommodate different input and output rates
+- Facilitates the canonical chaining together of small UNIX utilities to do more sophisticated processing
+  ![](images/pipe_commandline.png){.fragment}
+
+## Pipe bugs
+```{.c code-line-numbers="|8"}
+int pipefd[2];
+pipe (pipefd);
+
+if (fork () == 0)
+  exit (0);
+
+char buffer[10];
+read (pipefd[0], buffer, sizeof (buffer));
+```
+- What will happen here?
+  - Parent will block until an `EOF` is written into the pipe. Since the child is the only other process that could write to the pipe and the child exits without writing anything, and the parent has not closed its write end, the parent will block indefinitely.
+
+## Named pipes (also known as FIFOs)
+- Of course there is another type that don't share the same characteristics
+- Named pipes are [bidirectional]{.alert}, don't have the parent-child relationship
+  - Creates a persistent file-like name
+  - Require a reader and writer
+
+## Named pipes (cont'd)
+- Really a data stream (ordering, buffering, reliability, authentication all implied)
+- They are **not** regular files, though they look like them
+  - Once data has been read from a FIFO, the data is discarded and cannot be read again
+  - Cannot broadcast: only one `read()`
+  - **Not** wise to use bidirectionally, why?
+
+## Shared memory with mmap
+:::: {.columns}
+
+::: {.column width="63%" .nonincremental}
+
+- Memory-mapped files allow for multiple processes to share read-only access to a common file. Example: `libc.so` mapped into all running C programs 
+- Memory-mapped files bypass the kernel's buffer cache (as done with a normal `read()`), and the data is copied directly into the user-mode portion of memory
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="35%"}
+![](images/mmap.png)
+:::
+::::
+- Provide extremely fast IPC data exchange. i.e., when one process writes to the region, that data is immediately accessible by the other process [without having to invoke a system call]{.alert}
+- Unlike pipes, memory-mapped files create [persistent]{.alert} IPC. Once the data is written to the shared region, it can be repeatedly accessed by other processes
+
+## Memory mapped files: POSIX and System V
+- These two ultimately `mmap` a file, but do some trickery beforehand and use special files
+- POSIX == named, RAM-backed file descriptors
+  - ```name → fd → mmap```
+  - Object survives until the last reference is gone
+  - usually backed by `tmpfs` (`/dev/shm`)
+- System V shared memory
+  - Predates POSIX - designed before file descriptors were a universal abstraction
+  - Kernel-persistent objects, you must clean up manually
+    - Process exits ≠ memory freed
+
+## POSIX vs. System V
+- POSIX is great, right!?
+  - POSIX (e.g., `shm_open()`) IPC may not work in your favor in macOS
+  - Some questionable engineer (obviously not a CP grad) decided to provide the header files for certain things, but they are empty stubs
+    - It will compile, but could be bad
+- System V is "fine"
+  - `shmget()`: allocate
+  - `shmat()`: attach
+  - `shmdt()`: detach
+  - `shmctl()`: control (destroy with IPC_RMID)
+
+
+## Message passing vs. shared memory
+:::: {.columns}
+
+::: {.column width="48%" .nonincremental}
+- Which do you choose?
+  - If you have few messages?
+  - If you have millions?
+  - If you need to communicate across systems?
+  - If you need in-order delivery but don't want to code it yourself?
+- Considerations: 
+  - Cost to establish
+  - Cost per message
+
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="50%"}
+![](images/pipes_vs_shared.png)
+"Gemini, make an image in the style of a video game pitting pipes versus shared memory"
+:::
+::::
+
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear? 
+
+Comments? Thoughts? 
+:::
+
+# Scheduling {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- What are the differences / tradeoffs between preemptive and non-preemptive scheduling algorithms?
+- What are the metrics we can attempt to optimize scheduling for a given scenario?
+:::
+
+## Preemptive vs. non-preemptive scheduling
+- [Non-Preemptive]{.alert}: The scheduler only makes scheduling decisions when a process voluntarily gives up the CPU (e.g., by blocking on I/O, completing, or explicitly yielding).
+- [Preemptive]{.alert}: The scheduler can interrupt a running process and move it to the ready queue at any time (based on time slices, priority changes, etc.), even while it's actively executing.
+- Non-preemptive is easier to implement, but
+  - … doesn't support multiprogramming very well
+- Preemptive can be complicated: correctness, utilization, flexibility
+  - Say a process P is preempted while in the middle of inserting an element in a data structure that another process (which is chosen by the scheduler) is going to process
+
+
+## Scheduling metrics
+- [CPU utilization]{.alert}: keep the CPU as busy as possible
+- [Throughput]{.alert}: # of processes that complete their execution per time unit
+- [Turnaround time]{.alert}: amount of time to execute a particular process
+- [Waiting time]{.alert}: amount of time a process has been waiting in the ready queue
+- [Response time]{.alert}: amount of time it takes from when a request was submitted until the first response is produced. 
+
+## Scheduling scenarios
+### Which metric would you optimize for these situations?
+:::: {.columns}
+::: {.column width="73%"}
+- You run a data center that charges based on jobs completed 
+  - Max throughput: maximize the number of jobs processed per unit time
+- You run GeForce Now
+  - Min response time: user experience is the main concern
+- You run Github Actions or Travis CI
+  - Min turnaround time: developers need feedback quickly
+- You run a supercomputing center
+  - Maximize CPU usage: this stuff is expensive, use it efficiently
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="25%" .nonincremental}
+- CPU utilization
+- Throughput
+- Turnaround time
+- Waiting time
+- Response time 
+:::
+::::
+
+## What does the OS scheduler know about a process?
+- Process characteristics that we'd like to know in order to achieve our goals
+  - Processing Time (Burst Time)
+  - I/O Requirements
+  - Priority
+  - Age	
+  - Dependencies
+- The scheduler knows very little of the above
+- In many cases we are hoping to predict the future. Easy, right?
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear? 
+
+Comments? Thoughts? 
+:::
+
+# Batch scheduling algorithms {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- How do FCFS, SJF, and SRTF compare in terms of tradeoffs between waiting time and response time?
+- Why does SJF require predicting future CPU bursts, and how can we estimate them?
+- What is starvation in the context of scheduling, and how can we prevent it?
+:::
+
+## Batch scheduling: FCFS
+:::: {.columns}
+::: {.column width="53%"}
+- First-Come, First-Served (FCFS)
+- **Non-preemptive**
+- Pros:
+  - Easy to understand, easy to implement
+- Cons?
+  - Waiting time & turnaround time have high variance
+  - Example: 1 long CPU-bound process and many I/O bound processes
+    - Convoy effect
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="45%"}
+![](images/fcfs.png)
+
+![](images/convoy.png){.fragment}
+
+:::
+::::
+
+## FCFS example
+:::: {.columns}
+::: {.column width="73%"}
+- Calculate the average waiting time:
+- Order: P1, P2, P3
+![](images/fcfs_ex1.png)
+- Waiting time P1 = 0; P2 = 24; P3 = 27
+- Average waiting time: $(0 + 24 + 27)/3 = 17$
+
+- Order P2, P3, P1
+![](images/fcfs_ex2.png)
+- Waiting time P1 = 6; P2 = 0; P3 = 3
+- Average waiting time: $(6 + 0 + 3)/3 = 3$
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="25%"}
+    Process	Burst Time	
+      P1	     24
+      P2 	      3
+      P3	      3 
+:::
+::::
+
+## Okay, FCFS can be bad
+### Can we think of a better algorithm to deal with the reality that jobs run for different amounts of time?
+
+## Batch scheduling: shortest job first (SJF)
+:::: {.columns}
+::: {.column width="63%"}
+- Ordered by length of the process's next CPU burst
+- **Non-preemptive**
+- Pros?
+  - Optimal average waiting time
+- Cons?
+  - Requires knowing the future (potentially okay in some situations; examples?)
+    - Scientific jobs, batch jobs
+- Question: how do we know the length of the upcoming CPU burst?
+  - Ask the process? Estimate? How?
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="35%"}
+![](images/sjf.png){.fragment}
+
+:::
+::::
+
+## SJF: how can we predict the future?
+- We can't trust a process to tell the truth
+- We can only estimate, how?
+  - The past (with the hope that the process will act like it has before)
+- Exponential weighted moving average:
+  $$
+  EWMA_t = \alpha \times x_t + (1 - \alpha) \times EWMA_{t-1}
+  $$
+- $\alpha = 0$? New measurement does not get taken into account
+- $\alpha = 1$? History does not get taken into account
+- $\alpha$ is often set to .5
+
+## SJF example
+:::: {.columns}
+::: {.column width="73%"}
+- Gantt:
+![](images/sjf_ex1.png)
+- Average waiting time: $(3 + 16 + 9 + 0)/4 = 7$
+- Versus FCFS: $(0 + 6 + 14 + 21)/4 = 10.25$
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="25%"}
+		Process	Burst Time	
+		  P1	      6
+		  P2 	      8
+		  P3	      7
+          P4	      3
+:::
+::::
+
+## Do you see any problems with SJF?
+- What do we do if a short process arrives after SJF has started a long running process?
+![](images/sjf_bad.png)
+- What should we do?
+  - Preempt
+
+## Shortest remaining time first (SRTF)
+:::: {.columns}
+::: {.column width="63%"}
+- **Preemptive** version of SJF
+- Whenever a new process arrives in the ready queue, the decision on which process to schedule next is redone using the SJF algorithm
+- [Question]{.alert}: is SRTF more optimal than SJF for any metrics?
+  - Yes, average waiting time is minimized
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="35%"}
+![](images/srtf.png){.fragment}
+
+:::
+::::
+
+## SRTF example
+		Process      Arrival Time   Burst Time
+		 P1	              0	            8
+		 P2               1	            4
+		 P3	              2	            9
+		 P4	              3             5
+- Average waiting time = $[(0+9)+(0)+(15)+(2)]/4 = 26/4 = 6.5$
+![](images/srtf_gantt.png)
+
+## Do you see any problems with SRTF?
+- Computers aren't static. What if short jobs continuously arrive? 
+  - Large jobs can [starve]{.alert}
+  - *Urban legend about IBM 7074 at MIT: when shut down in 1973, low-priority processes were found which had been submitted in 1967 and had not yet been run...*
+
+## Priority scheduling
+- "Shortest" algos are examples of priority scheduling
+- I.e., scheduling is based on some metric of priority
+- Downsides
+  - If not implemented carefully, indefinite blocking / starvation 
+  - How do we prevent starvation?
+    - [Aging]{.alert}: gradually increase the priority of processes that wait in the system for a long time
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear? 
+
+Comments? Thoughts? 
+:::
+
+# Interactive scheduling algorithms {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- What are the key differences between batch and interactive scheduling algorithms?
+- How does Round Robin improve response time compared to SJF, and what tradeoff does it introduce?
+- Why might a system benefit from using multiple scheduling queues rather than a single algorithm?
+:::
+
+## Batch vs. interactive scheduling
+:::: {.columns}
+
+::: {.column width="48%" .nonincremental}
+**Batch Scheduling**
+
+- Optimizes for: throughput, turnaround time, waiting time
+- Context: data centers, HPC, background jobs
+- Users don't interact with running jobs
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="50%" .nonincremental}
+**Interactive Scheduling**
+
+- Optimizes for: response time, fairness
+- Context: desktop/laptop systems, servers
+- Users expect quick feedback to their actions
+:::
+
+::::
+
+## What about response time?
+:::: {.columns}
+::: {.column width="53%" .nonincremental}
+- SRTF is good if we know job lengths and we're only worried about turnaround / waiting time
+- SJF: poor response
+- RR: better response
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="45%"}
+![](images/sjf_long.png)
+![](images/rr_long.png){.fragment}
+:::
+::::
+
+## Interactive algorithm: Round Robin (RR)
+- FCFS with preemption
+- Based on a [time quantum]{.alert} (time slice)
+  - Typically 10-100 milliseconds
+  - How do we pick a quantum?
+    - Very short: a lot of context switching (need a large quantum, otherwise overhead is too much to be worth it)
+    - Very long -> becomes FCFS: long wait times, long turnaround times
+  - Circular queue
+    - New processes are added to the tail
+    - If a process doesn't complete during its quantum, context switch and added to the tail
+
+## RR example
+:::: {.columns}
+::: {.column width="73%" }
+- Average waiting time: 
+![](images/rr_gantt.png)
+$$[(10-4) + 4 + 7] = 17/3 = 5.66$$
+
+- Pros:
+  - RR is *fair*, but do we really want fair???
+  - Typically, higher average turnaround than SJF, but better response
+- Cons?
+  - Long average waiting times
+
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="25%"}
+    Process	Burst Time
+      P1        24
+      P2        3
+      P3        3	
+
+      Quantum = 4
+:::
+::::
+
+## Gaming RR
+- How could a programmer "cheat" RR?
+  - Spin up many processes (split tasks up and fork children)
+  - Job A: 9 processes 
+  - Job B: 1 process
+  - A gets 90% of the CPU in RR
+- This actually happens in many systems that aim for rudimentary fairness
+
+## FCFS, SJF, SRTF, RR
+- All have downsides
+- Those that optimize turnaround / wait, can harm response time
+- Those that optimize response time, can harm turnaround, wait
+
+- **What should we do?**
+
+## Interactive algorithms: Multi-Level Queue (MLQ)
+- We have classes of process, with different needs. Why not multiple schedulers satisfying those needs?
+- Multilevel queue scheduler defined by the following parameters:
+  - \# of queues
+  - Scheduling algorithms for each queue
+  - Method used to determine which queue a process will enter when that process needs service
+  - Scheduling among the queues
+
+## MLQ
+:::: {.columns}
+::: {.column width="48%" }
+- How do we schedule this?
+  - Strict priority: low priority could starve
+  - Typical: time slice among queues (e.g., real-time get 50%, system gets 30%, interactive 15%, batch 5%)
+  - Each queue can implement a separate scheduling policy
+- MLQ cons:
+  - Starvation
+  - Inflexibility
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="50%"}
+![](images/mlq.png)
+:::
+::::
+
+## Interactive algorithms: Multi-Level Feedback Queue (MLFQ)
+- A process can move between the various queues
+- Metrics for movement:
+  - Process requirements (we serve fast processes quickly)
+  - Over consumption
+  - Change in priority
+  - Age
+
+## MLFQ rules
+- Rule 1: If Priority(A) > Priority(B), A runs (B doesn't)
+- Rule 2: If Priority(A)=Priority(B), A & B run in RR
+- Rule 3: When a job enters the system, it is placed at the highest priority (the topmost queue)
+- Rule 4a: If a job uses up its allotment while running, its priority is reduced (i.e., it moves down one queue)
+- Rule 4b: If a job gives up the CPU (for example, by performing an I/O operation) before the allotment is up, it stays at the same priority level (i.e., its allotment is reset)
+
+- Any problems with these???
+
+## MLFQ example: one process
+![](images/mlfq.png)
+
+## MLFQ example: two processes
+:::: {.columns}
+::: {.column width="48%" .nonincremental}
+- Scenario 1: Perfectly fine
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="50%"}
+![](images/mlfq1.png)
+:::
+::::
+
+## MLFQ example: two processes
+:::: {.columns}
+::: {.column width="48%" .nonincremental}
+- Scenario 1: Perfectly fine
+- Scenario 2: programmer can game the algorithm to remain at high priority
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="50%"}
+![](images/mlfq2.png)
+:::
+::::
+
+## MLFQ example: two processes
+:::: {.columns}
+::: {.column width="48%" .nonincremental}
+- Scenario 1: Perfectly fine
+- Scenario 2: programmer can game the algorithm to remain at high priority
+- Scenario 3: multiple small processes keep lead to starvation
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="50%"}
+![](images/mlfq3.png)
+:::
+::::
+
+## MLFQ: solving gaming
+:::: {.columns}
+::: {.column width="43%" .nonincremental}
+- Rule 4 (new): Once a job uses up its time allotment at a given level (regardless of how many times it has given up the CPU), its priority is reduced (i.e., it moves down one queue)
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="55%"}
+![](images/mlfq_gaming.png)
+:::
+::::
+
+## MLFQ: solving starvation
+:::: {.columns}
+::: {.column width="43%" .nonincremental}
+- Rule 5: After some time period, move all the jobs in the system to the topmost queue
+  - Solves starvation
+  - If a long running process evolves to be more interactive, it gets promoted
+
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="55%"}
+![](images/mlfq_starvation.png)
+:::
+::::
+
+## What scheduler should we use?
+- Ticket booking system
+  - FCFS: fairness
+- Print server
+  - SJF could make sense
+- Web server
+  - RR: fairness
+- Streaming service
+  - SRTF: need to quickly respond to something going wrong e.g., buffering
+- General operating systems
+  - MLFQ: need to handle a mix
+
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear? 
+
+Comments? Thoughts? 
+:::
+
