@@ -26,11 +26,6 @@ format:
 - What considerations matter when choosing between pipes, FIFOs, and memory-mapped files?
 :::
 
-## IPC taxonomy
-:::{.r-stack}
-![](images/ipc_taxonomy.png)
-:::
-
 ## Pipes (anonymous pipes)
 - Pipes are [unidirectional]{.alert}; one end must be designated as the reading end and the other as the writing end
 - Pipes are [order preserving]{.alert}; all data read from the receiving end of the pipe will match the order in which it was written into the pipe
