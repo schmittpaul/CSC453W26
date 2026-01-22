@@ -287,13 +287,6 @@
     "text": "Questions to consider\n\nHow do pipes differ from FIFOs and when would you use each?\nWhat considerations matter when choosing between pipes, FIFOs, and memory-mapped files?"
   },
   {
-    "objectID": "day5.html#ipc-taxonomy",
-    "href": "day5.html#ipc-taxonomy",
-    "title": "CSC 453",
-    "section": "IPC taxonomy",
-    "text": "IPC taxonomy"
-  },
-  {
     "objectID": "day5.html#pipes-anonymous-pipes",
     "href": "day5.html#pipes-anonymous-pipes",
     "title": "CSC 453",
