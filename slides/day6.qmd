@@ -1,0 +1,468 @@
+---
+title: CSC 453
+subtitle: Winter 2026 Day 6
+format: 
+  clean-revealjs:
+    self-contained: true
+    incremental: true
+    margin: 0.15 
+    # height: 700   # Optional: Normal height (defaults to 700)
+    # width: 1000   # Optional: Normal width (defaults to 900)
+---
+
+## Admin
+:::{.nonincremental}
+- Midterm 1 Thursday
+- Programming assignment 2 due Monday
+:::
+
+# Interactive scheduling algorithms {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- What are the key differences between batch and interactive scheduling algorithms?
+- How does Round Robin improve response time compared to SJF, and what tradeoff does it introduce?
+- Why might a system benefit from using multiple scheduling queues rather than a single algorithm?
+:::
+
+## Batch vs. interactive scheduling
+:::: {.columns}
+
+::: {.column width="48%" .nonincremental}
+**Batch Scheduling**
+
+- Optimizes for: throughput, turnaround time, waiting time
+- Context: data centers, HPC, background jobs
+- Users don't interact with running jobs
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="50%" .nonincremental}
+**Interactive Scheduling**
+
+- Optimizes for: response time, fairness
+- Context: desktop/laptop systems, servers
+- Users expect quick feedback to their actions
+:::
+
+::::
+
+## What about response time?
+:::: {.columns}
+::: {.column width="53%" .nonincremental}
+- SRTF is good if we know job lengths and we're only worried about turnaround / waiting time
+- SJF: poor response
+- RR: better response
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="45%"}
+![](images/sjf_long.png)
+![](images/rr_long.png){.fragment}
+:::
+::::
+
+## Interactive algorithm: Round Robin (RR)
+- FCFS with preemption
+- Based on a [time quantum]{.alert} (time slice)
+  - Typically 10-100 milliseconds
+  - How do we pick a quantum?
+    - Very short: a lot of context switching (need a large quantum, otherwise overhead is too much to be worth it)
+    - Very long -> becomes FCFS: long wait times, long turnaround times
+  - Circular queue
+    - New processes are added to the tail
+    - If a process doesn't complete during its quantum, context switch and added to the tail
+
+## RR example
+:::: {.columns}
+::: {.column width="73%" }
+- Average waiting time: 
+![](images/rr_gantt.png)
+$$[(10-4) + 4 + 7] = 17/3 = 5.66$$
+
+- Pros:
+  - RR is *fair*, but do we really want fair???
+  - Typically, higher average turnaround than SJF, but better response
+- Cons?
+  - Long average waiting times
+
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="25%"}
+    Process	Burst Time
+      P1        24
+      P2        3
+      P3        3	
+
+      Quantum = 4
+:::
+::::
+
+## Gaming RR
+- How could a programmer "cheat" RR?
+  - Spin up many processes (split tasks up and fork children)
+  - Job A: 9 processes 
+  - Job B: 1 process
+  - A gets 90% of the CPU in RR
+- This actually happens in many systems that aim for rudimentary fairness
+
+## FCFS, SJF, SRTF, RR
+- All have downsides
+- Those that optimize turnaround / wait, can harm response time
+- Those that optimize response time, can harm turnaround, wait
+
+- **What should we do?**
+
+## Interactive algorithms: Multi-Level Queue (MLQ)
+- We have classes of process, with different needs. Why not multiple schedulers satisfying those needs?
+- Multilevel queue scheduler defined by the following parameters:
+  - \# of queues
+  - Scheduling algorithms for each queue
+  - Method used to determine which queue a process will enter when that process needs service
+  - Scheduling among the queues
+
+## MLQ
+:::: {.columns}
+::: {.column width="48%" }
+- How do we schedule this?
+  - Strict priority: low priority could starve
+  - Typical: time slice among queues (e.g., real-time get 50%, system gets 30%, interactive 15%, batch 5%)
+  - Each queue can implement a separate scheduling policy
+- MLQ cons:
+  - Starvation
+  - Inflexibility
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="50%"}
+![](images/mlq.png)
+:::
+::::
+
+## Interactive algorithms: Multi-Level Feedback Queue (MLFQ)
+- A process can move between the various queues
+- Metrics for movement:
+  - Process requirements (we serve fast processes quickly)
+  - Over consumption
+  - Change in priority
+  - Age
+
+## MLFQ rules
+- Rule 1: If Priority(A) > Priority(B), A runs (B doesn't)
+- Rule 2: If Priority(A)=Priority(B), A & B run in RR
+- Rule 3: When a job enters the system, it is placed at the highest priority (the topmost queue)
+- Rule 4a: If a job uses up its allotment while running, its priority is reduced (i.e., it moves down one queue)
+- Rule 4b: If a job gives up the CPU (for example, by performing an I/O operation) before the allotment is up, it stays at the same priority level (i.e., its allotment is reset)
+
+- Any problems with these???
+
+## MLFQ example: one process
+![](images/mlfq.png)
+
+## MLFQ example: two processes
+:::: {.columns}
+::: {.column width="48%" .nonincremental}
+- Scenario 1: Perfectly fine
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="50%"}
+![](images/mlfq1.png)
+:::
+::::
+
+## MLFQ example: two processes
+:::: {.columns}
+::: {.column width="48%" .nonincremental}
+- Scenario 1: Perfectly fine
+- Scenario 2: programmer can game the algorithm to remain at high priority
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="50%"}
+![](images/mlfq2.png)
+:::
+::::
+
+## MLFQ example: two processes
+:::: {.columns}
+::: {.column width="48%" .nonincremental}
+- Scenario 1: Perfectly fine
+- Scenario 2: programmer can game the algorithm to remain at high priority
+- Scenario 3: multiple small processes keep lead to starvation
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="50%"}
+![](images/mlfq3.png)
+:::
+::::
+
+## MLFQ: solving gaming
+:::: {.columns}
+::: {.column width="43%" .nonincremental}
+- Rule 4 (new): Once a job uses up its time allotment at a given level (regardless of how many times it has given up the CPU), its priority is reduced (i.e., it moves down one queue)
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="55%"}
+![](images/mlfq_gaming.png)
+:::
+::::
+
+## MLFQ: solving starvation
+:::: {.columns}
+::: {.column width="43%" .nonincremental}
+- Rule 5: After some time period, move all the jobs in the system to the topmost queue
+  - Solves starvation
+  - If a long running process evolves to be more interactive, it gets promoted
+
+:::
+
+::: {.column width="2%"}
+:::
+
+::: {.column width="55%"}
+![](images/mlfq_starvation.png)
+:::
+::::
+
+## What scheduler should we use?
+- Ticket booking system
+  - FCFS: fairness
+- Print server
+  - SJF could make sense
+- Web server
+  - RR: fairness
+- Streaming service
+  - SRTF: need to quickly respond to something going wrong e.g., buffering
+- General operating systems
+  - MLFQ: need to handle a mix
+
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear? 
+
+Comments? Thoughts? 
+:::
+
+# Midterm boundary {background-color="#907845"}
+
+# Threads {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- What are the differences between processes and threads?
+- When are threads beneficial?
+- How are threads limited by Amdahl's Law?
+:::
+
+## Motivation: context switching is expensive
+- consider the modern word processor, which concurrently:
+  - accepts user input, 
+  - performs auto-correct/spell checking;
+  - auto-detects formatting 
+  - auto-save (nothing could be entered until save was complete); 
+- All impossible (or at least very inconvenient) without threads.
+
+## Processes vs threads
+- Potentially confusing due to overlapping terminology: we can describe both a [process]{.alert} and a [thread]{.alert} as running
+- Terminology can be helpful for remembering the distinction:
+  - A computing [process]{.alert} requires multiple resources: the CPU, memory, files, etc.
+  - A [thread]{.alert} of execution abstracts CPU state
+
+## Processes vs threads (cont'd)
+- Processes *contain* threads; threads *belong* to a process
+  - Only one exception: the kernel may have threads of execution not associated with any user process
+- Threads each have their own stack and registers
+  - Share code, data, files held by the process
+- A process is considered to be running when one or more of its threads are running
+- Different operating systems use different terminology, but share common ideas
+
+## Intra-process communication
+- Communication between multiple threads in a process is usually accomplished using [shared memory]{.alert} (since they naturally share it)
+  - Potential issues?
+    - Synchronization (we'll come back to this)
+- Threads within a process also share open file handles and both static and dynamically-allocated global variables.
+- Thread stacks and thus thread local variables are typically private.
+
+## Why do we use threads? Pros
+- To support multiple activities within a single process
+- [Responsiveness]{.alert}: a process may continue to run, even if part of it is blocked (depends on thread implementation)
+- [Resource sharing]{.alert}: Process are isolated so can only communicate with help from the kernel; threads share a memory space and a process's resources (e.g. files)
+- [Economy]{.alert}: Allocating resources for multiple processes is costly, because it involves the kernel. Threads can be handled entirely in user space and are much faster to allocate and destroy. Allows for pop-up threads, dynamically created threads to support load
+- [Hardware support]{.alert}: modern CPUs support multithreading (hyperthreading), where threads can run in parallel
+
+## Thread cons
+- This is hard. Burdens programmer needs to solve:
+  - Dividing activities
+  - Balance
+  - Data splitting
+  - Data dependency
+  - Testing and debugging
+- Share the same address space and global variable: [loss of isolation]{.alert}. A runaway thread can wipe out other threads
+- No built-in mechanism for pre-emption, so threads should be well-behaved (unlike greedy processes)
+- n threads see 1/n of a single CPU; CPU-bound processes make thread moot, or detrimental
+
+## What makes more sense, threads or process?
+:::{.nonincremental}
+- Web browser
+- Web server
+- GUI apps
+- Multimedia apps
+- DB servers
+- OS services
+:::
+
+## What makes more sense, threads or process?
+:::{.nonincremental}
+- Web browser - process
+- Web server - thread
+- GUI apps - thread
+- Multimedia apps - thread
+- DB servers - process
+- OS services - process
+:::
+
+## Side note: `fork()` and threading
+- What happens to threads when you `fork()`?
+- Should a child inherit the threads of their parent?
+- What happens if two threads are competing for the same resource? E.g., who gets the input from a keyboard or established network connection?
+- What happens if a thread closes a file another expects to be open?
+ - In reality (Linux): a child process, only the calling thread is replicated.
+
+
+## A word of caution: Amdahl's Law
+- Threads are awesome, let's parallelize everything, right?
+- Amdahl's Law identifies performance gains from adding additional cores to an application that has both serial and parallel components
+  - $S$ is serial portion
+  - $N$ processing cores
+  $$speedup \le \frac{1}{S + \frac{(1-S)}{N}}$$
+
+- That is, if application is 75% parallel / 25% serial, moving from 1 to 2 cores results in speedup of $1.6 \times$
+- As $N$ approaches infinity, speedup approaches $1 / S$
+- Example: $S = 50%$. You are capped at $2 \times$ speedup
+- **Serial portion of an application has disproportionate  effect on performance gained by adding additional cores**
+
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear? 
+
+Comments? Thoughts? 
+:::
+
+
+# Thread models {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- What is the difference between user threads and kernel threads
+- What are the different kernel thread models and how do they compare?
+:::
+
+## First things first
+- A kernel thread is the unit of execution that the OS can run on a CPU core
+- A process can only make progress if at least one of its kernel threads is scheduled on a core
+- CPUs run kernel threads, not processes
+
+## POSIX threads (pthreads)
+- 60 calls, but the important ones are: `pthread*`
+  - `create`, `exit`, `yield`, `join` (Look familiar?)
+- Pthreads can be used as a [user space]{.alert} library: all functionality happens in user space, and the kernel knows nothing about them
+  - can run on kernels or CPUs with no thread support
+  - orders of magnitude faster than a kernel trap (everything is a local function call)
+  - custom schedulers
+
+## Pure user space threads
+- Totally unknown to the OS
+- User-level threads must "borrow" a kernel thread to run
+- What happens when a thread makes an I/O-bound system call?
+  - All threads will block, because the process is blocked
+  - Sometimes a thread blocking a process is unavoidable: page fault: more later
+- Where we typically want threads is where there is a lot of I/O blocking or system calls: the web server example
+  - if we're trapping to the kernel, are we really gaining anything?
+
+## Kernel threads
+- Thread libraries can also have kernel support (most modern OSes support kernel threads)
+- There is no user space runtime environment or thread table: all is managed within the kernel
+- Support for multiple cores 
+- All thread interfaces are system calls handled by the kernel
+
+## Kernel threads (cont'd)
+- Instead of blocking on a system call, the kernel now has the intelligence to schedule another thread
+- Creating and destroying threads comes at a higher cost (the kernel trap we were trying to avoid above)
+  - What should we do?
+    - [Thread pools]{.alert}: a collection of pre-allocated threads, assigned as needed
+
+## Thread design models: many-to-one (N:1)
+- Kernel threads must support user level threads. There are multiple ways to pull this off
+- [Many-to-one]{.alert} (green threads)
+  - A single kernel level thread supports many user level threads
+  - Switching between threads is fast (done in user level)
+  - No parallelism (kernel thread is supporting only a single user thread at a time)
+  - If any user thread makes an I/O blocking call, all user threads in that process are blocked 
+
+## Thread models: many-to-many (M:N)
+- Set of user threads supported by <= number of kernel 
+- User thread isn't bound to a particular kernel thread
+  - If kernel thread has to block and was supporting 3 user threads, the others can migrate
+- Allows parallelism
+- Programmer has more control (scheduling in user space)
+- Sounds like the best of all worlds, right?
+  - Can be hard to implement without decent language support
+    - goroutines are a notable example of M:M in reality (though they are achieved through the Go runtime and not the kernel itself)
+
+## Thread models: one-to-one (1:1)
+
+- Number of kernel-level threads is equal to the number of user-level threads
+- Can operate in parallel
+- If one blocks, others can continue
+- Downsides?
+  - Lose the advantage of fast switching between user threads
+  - Any new user thread requires kernel thread creation: *expensive*
+  - Programmer loses scheduling control: kernel makes decisions
+- Very popular model: Linux & Windows
+  - Easy to implement
+  - Most machines have multiple cores so we can support a lot of kernel threads
+
+## Which models make sense?
+:::{.nonincremental}
+- Distributed scientific computing
+- Embedded system
+- NGINX web servers
+:::
+
+## Which models make sense?
+- Distributed scientific computing
+  - 1:1 - In scientific computing, you want predictable, full-speed access to hardware, not an extra runtime scheduler in the way
+- Embedded system
+  - N:1 - In embedded systems, simplicity and determinism matter more than scalability. You may only have a single core
+- NGINX web servers
+  - M:N - NGINX multiplexes connections (user-level work) onto a small number of kernel threads
+
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear? 
+
+Comments? Thoughts? 
+:::
