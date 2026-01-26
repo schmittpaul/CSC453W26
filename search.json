@@ -798,6 +798,314 @@
     "text": "What isn’t clear?\nComments? Thoughts?"
   },
   {
+    "objectID": "day6.html#admin",
+    "href": "day6.html#admin",
+    "title": "CSC 453",
+    "section": "Admin",
+    "text": "Admin\n\nMidterm 1 Thursday\nProgramming assignment 2 due Monday"
+  },
+  {
+    "objectID": "day6.html#questions-to-consider",
+    "href": "day6.html#questions-to-consider",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat are the key differences between batch and interactive scheduling algorithms?\nHow does Round Robin improve response time compared to SJF, and what tradeoff does it introduce?\nWhy might a system benefit from using multiple scheduling queues rather than a single algorithm?"
+  },
+  {
+    "objectID": "day6.html#batch-vs.-interactive-scheduling",
+    "href": "day6.html#batch-vs.-interactive-scheduling",
+    "title": "CSC 453",
+    "section": "Batch vs. interactive scheduling",
+    "text": "Batch vs. interactive scheduling\n\n\nBatch Scheduling\n\nOptimizes for: throughput, turnaround time, waiting time\nContext: data centers, HPC, background jobs\nUsers don’t interact with running jobs\n\n\n\n\nInteractive Scheduling\n\nOptimizes for: response time, fairness\nContext: desktop/laptop systems, servers\nUsers expect quick feedback to their actions"
+  },
+  {
+    "objectID": "day6.html#what-about-response-time",
+    "href": "day6.html#what-about-response-time",
+    "title": "CSC 453",
+    "section": "What about response time?",
+    "text": "What about response time?\n\n\n\nSRTF is good if we know job lengths and we’re only worried about turnaround / waiting time\nSJF: poor response\nRR: better response"
+  },
+  {
+    "objectID": "day6.html#interactive-algorithm-round-robin-rr",
+    "href": "day6.html#interactive-algorithm-round-robin-rr",
+    "title": "CSC 453",
+    "section": "Interactive algorithm: Round Robin (RR)",
+    "text": "Interactive algorithm: Round Robin (RR)\n\nFCFS with preemption\nBased on a time quantum (time slice)\n\nTypically 10-100 milliseconds\nHow do we pick a quantum?\n\nVery short: a lot of context switching (need a large quantum, otherwise overhead is too much to be worth it)\nVery long -&gt; becomes FCFS: long wait times, long turnaround times\n\nCircular queue\n\nNew processes are added to the tail\nIf a process doesn’t complete during its quantum, context switch and added to the tail"
+  },
+  {
+    "objectID": "day6.html#rr-example",
+    "href": "day6.html#rr-example",
+    "title": "CSC 453",
+    "section": "RR example",
+    "text": "RR example\n\n\n\nAverage waiting time:  \\[[(10-4) + 4 + 7] = 17/3 = 5.66\\]\nPros:\n\nRR is fair, but do we really want fair???\nTypically, higher average turnaround than SJF, but better response\n\nCons?\n\nLong average waiting times\n\n\n\n\n\nProcess Burst Time\n  P1        24\n  P2        3\n  P3        3   \n\n  Quantum = 4"
+  },
+  {
+    "objectID": "day6.html#gaming-rr",
+    "href": "day6.html#gaming-rr",
+    "title": "CSC 453",
+    "section": "Gaming RR",
+    "text": "Gaming RR\n\nHow could a programmer “cheat” RR?\n\nSpin up many processes (split tasks up and fork children)\nJob A: 9 processes\nJob B: 1 process\nA gets 90% of the CPU in RR\n\nThis actually happens in many systems that aim for rudimentary fairness"
+  },
+  {
+    "objectID": "day6.html#fcfs-sjf-srtf-rr",
+    "href": "day6.html#fcfs-sjf-srtf-rr",
+    "title": "CSC 453",
+    "section": "FCFS, SJF, SRTF, RR",
+    "text": "FCFS, SJF, SRTF, RR\n\nAll have downsides\nThose that optimize turnaround / wait, can harm response time\nThose that optimize response time, can harm turnaround, wait\nWhat should we do?"
+  },
+  {
+    "objectID": "day6.html#interactive-algorithms-multi-level-queue-mlq",
+    "href": "day6.html#interactive-algorithms-multi-level-queue-mlq",
+    "title": "CSC 453",
+    "section": "Interactive algorithms: Multi-Level Queue (MLQ)",
+    "text": "Interactive algorithms: Multi-Level Queue (MLQ)\n\nWe have classes of process, with different needs. Why not multiple schedulers satisfying those needs?\nMultilevel queue scheduler defined by the following parameters:\n\n# of queues\nScheduling algorithms for each queue\nMethod used to determine which queue a process will enter when that process needs service\nScheduling among the queues"
+  },
+  {
+    "objectID": "day6.html#mlq",
+    "href": "day6.html#mlq",
+    "title": "CSC 453",
+    "section": "MLQ",
+    "text": "MLQ\n\n\n\nHow do we schedule this?\n\nStrict priority: low priority could starve\nTypical: time slice among queues (e.g., real-time get 50%, system gets 30%, interactive 15%, batch 5%)\nEach queue can implement a separate scheduling policy\n\nMLQ cons:\n\nStarvation\nInflexibility"
+  },
+  {
+    "objectID": "day6.html#interactive-algorithms-multi-level-feedback-queue-mlfq",
+    "href": "day6.html#interactive-algorithms-multi-level-feedback-queue-mlfq",
+    "title": "CSC 453",
+    "section": "Interactive algorithms: Multi-Level Feedback Queue (MLFQ)",
+    "text": "Interactive algorithms: Multi-Level Feedback Queue (MLFQ)\n\nA process can move between the various queues\nMetrics for movement:\n\nProcess requirements (we serve fast processes quickly)\nOver consumption\nChange in priority\nAge"
+  },
+  {
+    "objectID": "day6.html#mlfq-rules",
+    "href": "day6.html#mlfq-rules",
+    "title": "CSC 453",
+    "section": "MLFQ rules",
+    "text": "MLFQ rules\n\nRule 1: If Priority(A) &gt; Priority(B), A runs (B doesn’t)\nRule 2: If Priority(A)=Priority(B), A & B run in RR\nRule 3: When a job enters the system, it is placed at the highest priority (the topmost queue)\nRule 4a: If a job uses up its allotment while running, its priority is reduced (i.e., it moves down one queue)\nRule 4b: If a job gives up the CPU (for example, by performing an I/O operation) before the allotment is up, it stays at the same priority level (i.e., its allotment is reset)\nAny problems with these???"
+  },
+  {
+    "objectID": "day6.html#mlfq-example-one-process",
+    "href": "day6.html#mlfq-example-one-process",
+    "title": "CSC 453",
+    "section": "MLFQ example: one process",
+    "text": "MLFQ example: one process"
+  },
+  {
+    "objectID": "day6.html#mlfq-example-two-processes",
+    "href": "day6.html#mlfq-example-two-processes",
+    "title": "CSC 453",
+    "section": "MLFQ example: two processes",
+    "text": "MLFQ example: two processes\n\n\n\nScenario 1: Perfectly fine"
+  },
+  {
+    "objectID": "day6.html#mlfq-example-two-processes-1",
+    "href": "day6.html#mlfq-example-two-processes-1",
+    "title": "CSC 453",
+    "section": "MLFQ example: two processes",
+    "text": "MLFQ example: two processes\n\n\n\nScenario 1: Perfectly fine\nScenario 2: programmer can game the algorithm to remain at high priority"
+  },
+  {
+    "objectID": "day6.html#mlfq-example-two-processes-2",
+    "href": "day6.html#mlfq-example-two-processes-2",
+    "title": "CSC 453",
+    "section": "MLFQ example: two processes",
+    "text": "MLFQ example: two processes\n\n\n\nScenario 1: Perfectly fine\nScenario 2: programmer can game the algorithm to remain at high priority\nScenario 3: multiple small processes keep lead to starvation"
+  },
+  {
+    "objectID": "day6.html#mlfq-solving-gaming",
+    "href": "day6.html#mlfq-solving-gaming",
+    "title": "CSC 453",
+    "section": "MLFQ: solving gaming",
+    "text": "MLFQ: solving gaming\n\n\n\nRule 4 (new): Once a job uses up its time allotment at a given level (regardless of how many times it has given up the CPU), its priority is reduced (i.e., it moves down one queue)"
+  },
+  {
+    "objectID": "day6.html#mlfq-solving-starvation",
+    "href": "day6.html#mlfq-solving-starvation",
+    "title": "CSC 453",
+    "section": "MLFQ: solving starvation",
+    "text": "MLFQ: solving starvation\n\n\n\nRule 5: After some time period, move all the jobs in the system to the topmost queue\n\nSolves starvation\nIf a long running process evolves to be more interactive, it gets promoted"
+  },
+  {
+    "objectID": "day6.html#what-scheduler-should-we-use",
+    "href": "day6.html#what-scheduler-should-we-use",
+    "title": "CSC 453",
+    "section": "What scheduler should we use?",
+    "text": "What scheduler should we use?\n\nTicket booking system\n\nFCFS: fairness\n\nPrint server\n\nSJF could make sense\n\nWeb server\n\nRR: fairness\n\nStreaming service\n\nSRTF: need to quickly respond to something going wrong e.g., buffering\n\nGeneral operating systems\n\nMLFQ: need to handle a mix"
+  },
+  {
+    "objectID": "day6.html#section",
+    "href": "day6.html#section",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day6.html#questions-to-consider-1",
+    "href": "day6.html#questions-to-consider-1",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat are the differences between processes and threads?\nWhen are threads beneficial?\nHow are threads limited by Amdahl’s Law?"
+  },
+  {
+    "objectID": "day6.html#motivation-context-switching-is-expensive",
+    "href": "day6.html#motivation-context-switching-is-expensive",
+    "title": "CSC 453",
+    "section": "Motivation: context switching is expensive",
+    "text": "Motivation: context switching is expensive\n\nconsider the modern word processor, which concurrently:\n\naccepts user input,\nperforms auto-correct/spell checking;\nauto-detects formatting\nauto-save (nothing could be entered until save was complete);\n\nAll impossible (or at least very inconvenient) without threads."
+  },
+  {
+    "objectID": "day6.html#processes-vs-threads",
+    "href": "day6.html#processes-vs-threads",
+    "title": "CSC 453",
+    "section": "Processes vs threads",
+    "text": "Processes vs threads\n\nPotentially confusing due to overlapping terminology: we can describe both a process and a thread as running\nTerminology can be helpful for remembering the distinction:\n\nA computing process requires multiple resources: the CPU, memory, files, etc.\nA thread of execution abstracts CPU state"
+  },
+  {
+    "objectID": "day6.html#processes-vs-threads-contd",
+    "href": "day6.html#processes-vs-threads-contd",
+    "title": "CSC 453",
+    "section": "Processes vs threads (cont’d)",
+    "text": "Processes vs threads (cont’d)\n\nProcesses contain threads; threads belong to a process\n\nOnly one exception: the kernel may have threads of execution not associated with any user process\n\nThreads each have their own stack and registers\n\nShare code, data, files held by the process\n\nA process is considered to be running when one or more of its threads are running\nDifferent operating systems use different terminology, but share common ideas"
+  },
+  {
+    "objectID": "day6.html#intra-process-communication",
+    "href": "day6.html#intra-process-communication",
+    "title": "CSC 453",
+    "section": "Intra-process communication",
+    "text": "Intra-process communication\n\nCommunication between multiple threads in a process is usually accomplished using shared memory (since they naturally share it)\n\nPotential issues?\n\nSynchronization (we’ll come back to this)\n\n\nThreads within a process also share open file handles and both static and dynamically-allocated global variables.\nThread stacks and thus thread local variables are typically private."
+  },
+  {
+    "objectID": "day6.html#why-do-we-use-threads-pros",
+    "href": "day6.html#why-do-we-use-threads-pros",
+    "title": "CSC 453",
+    "section": "Why do we use threads? Pros",
+    "text": "Why do we use threads? Pros\n\nTo support multiple activities within a single process\nResponsiveness: a process may continue to run, even if part of it is blocked (depends on thread implementation)\nResource sharing: Process are isolated so can only communicate with help from the kernel; threads share a memory space and a process’s resources (e.g. files)\nEconomy: Allocating resources for multiple processes is costly, because it involves the kernel. Threads can be handled entirely in user space and are much faster to allocate and destroy. Allows for pop-up threads, dynamically created threads to support load\nHardware support: modern CPUs support multithreading (hyperthreading), where threads can run in parallel"
+  },
+  {
+    "objectID": "day6.html#thread-cons",
+    "href": "day6.html#thread-cons",
+    "title": "CSC 453",
+    "section": "Thread cons",
+    "text": "Thread cons\n\nThis is hard. Burdens programmer needs to solve:\n\nDividing activities\nBalance\nData splitting\nData dependency\nTesting and debugging\n\nShare the same address space and global variable: loss of isolation. A runaway thread can wipe out other threads\nNo built-in mechanism for pre-emption, so threads should be well-behaved (unlike greedy processes)\nn threads see 1/n of a single CPU; CPU-bound processes make thread moot, or detrimental"
+  },
+  {
+    "objectID": "day6.html#what-makes-more-sense-threads-or-process",
+    "href": "day6.html#what-makes-more-sense-threads-or-process",
+    "title": "CSC 453",
+    "section": "What makes more sense, threads or process?",
+    "text": "What makes more sense, threads or process?\n\nWeb browser\nWeb server\nGUI apps\nMultimedia apps\nDB servers\nOS services"
+  },
+  {
+    "objectID": "day6.html#what-makes-more-sense-threads-or-process-1",
+    "href": "day6.html#what-makes-more-sense-threads-or-process-1",
+    "title": "CSC 453",
+    "section": "What makes more sense, threads or process?",
+    "text": "What makes more sense, threads or process?\n\nWeb browser - process\nWeb server - thread\nGUI apps - thread\nMultimedia apps - thread\nDB servers - process\nOS services - process"
+  },
+  {
+    "objectID": "day6.html#side-note-fork-and-threading",
+    "href": "day6.html#side-note-fork-and-threading",
+    "title": "CSC 453",
+    "section": "Side note: fork() and threading",
+    "text": "Side note: fork() and threading\n\nWhat happens to threads when you fork()?\nShould a child inherit the threads of their parent?\nWhat happens if two threads are competing for the same resource? E.g., who gets the input from a keyboard or established network connection?\nWhat happens if a thread closes a file another expects to be open?\nIn reality (Linux): a child process, only the calling thread is replicated."
+  },
+  {
+    "objectID": "day6.html#a-word-of-caution-amdahls-law",
+    "href": "day6.html#a-word-of-caution-amdahls-law",
+    "title": "CSC 453",
+    "section": "A word of caution: Amdahl’s Law",
+    "text": "A word of caution: Amdahl’s Law\n\nThreads are awesome, let’s parallelize everything, right?\nAmdahl’s Law identifies performance gains from adding additional cores to an application that has both serial and parallel components\n\n\\(S\\) is serial portion\n\\(N\\) processing cores \\[speedup \\le \\frac{1}{S + \\frac{(1-S)}{N}}\\]\n\nThat is, if application is 75% parallel / 25% serial, moving from 1 to 2 cores results in speedup of \\(1.6 \\times\\)\nAs \\(N\\) approaches infinity, speedup approaches \\(1 / S\\)\nExample: \\(S = 50%\\). You are capped at \\(2 \\times\\) speedup\nSerial portion of an application has disproportionate effect on performance gained by adding additional cores"
+  },
+  {
+    "objectID": "day6.html#section-1",
+    "href": "day6.html#section-1",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day6.html#questions-to-consider-2",
+    "href": "day6.html#questions-to-consider-2",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat is the difference between user threads and kernel threads\nWhat are the different kernel thread models and how do they compare?"
+  },
+  {
+    "objectID": "day6.html#first-things-first",
+    "href": "day6.html#first-things-first",
+    "title": "CSC 453",
+    "section": "First things first",
+    "text": "First things first\n\nA kernel thread is the unit of execution that the OS can run on a CPU core\nA process can only make progress if at least one of its kernel threads is scheduled on a core\nCPUs run kernel threads, not processes"
+  },
+  {
+    "objectID": "day6.html#posix-threads-pthreads",
+    "href": "day6.html#posix-threads-pthreads",
+    "title": "CSC 453",
+    "section": "POSIX threads (pthreads)",
+    "text": "POSIX threads (pthreads)\n\n60 calls, but the important ones are: pthread*\n\ncreate, exit, yield, join (Look familiar?)\n\nPthreads can be used as a user space library: all functionality happens in user space, and the kernel knows nothing about them\n\ncan run on kernels or CPUs with no thread support\norders of magnitude faster than a kernel trap (everything is a local function call)\ncustom schedulers"
+  },
+  {
+    "objectID": "day6.html#pure-user-space-threads",
+    "href": "day6.html#pure-user-space-threads",
+    "title": "CSC 453",
+    "section": "Pure user space threads",
+    "text": "Pure user space threads\n\nTotally unknown to the OS\nUser-level threads must “borrow” a kernel thread to run\nWhat happens when a thread makes an I/O-bound system call?\n\nAll threads will block, because the process is blocked\nSometimes a thread blocking a process is unavoidable: page fault: more later\n\nWhere we typically want threads is where there is a lot of I/O blocking or system calls: the web server example\n\nif we’re trapping to the kernel, are we really gaining anything?"
+  },
+  {
+    "objectID": "day6.html#kernel-threads",
+    "href": "day6.html#kernel-threads",
+    "title": "CSC 453",
+    "section": "Kernel threads",
+    "text": "Kernel threads\n\nThread libraries can also have kernel support (most modern OSes support kernel threads)\nThere is no user space runtime environment or thread table: all is managed within the kernel\nSupport for multiple cores\nAll thread interfaces are system calls handled by the kernel"
+  },
+  {
+    "objectID": "day6.html#kernel-threads-contd",
+    "href": "day6.html#kernel-threads-contd",
+    "title": "CSC 453",
+    "section": "Kernel threads (cont’d)",
+    "text": "Kernel threads (cont’d)\n\nInstead of blocking on a system call, the kernel now has the intelligence to schedule another thread\nCreating and destroying threads comes at a higher cost (the kernel trap we were trying to avoid above)\n\nWhat should we do?\n\nThread pools: a collection of pre-allocated threads, assigned as needed"
+  },
+  {
+    "objectID": "day6.html#thread-design-models-many-to-one-n1",
+    "href": "day6.html#thread-design-models-many-to-one-n1",
+    "title": "CSC 453",
+    "section": "Thread design models: many-to-one (N:1)",
+    "text": "Thread design models: many-to-one (N:1)\n\nKernel threads must support user level threads. There are multiple ways to pull this off\nMany-to-one (green threads)\n\nA single kernel level thread supports many user level threads\nSwitching between threads is fast (done in user level)\nNo parallelism (kernel thread is supporting only a single user thread at a time)\nIf any user thread makes an I/O blocking call, all user threads in that process are blocked"
+  },
+  {
+    "objectID": "day6.html#thread-models-many-to-many-mn",
+    "href": "day6.html#thread-models-many-to-many-mn",
+    "title": "CSC 453",
+    "section": "Thread models: many-to-many (M:N)",
+    "text": "Thread models: many-to-many (M:N)\n\nSet of user threads supported by &lt;= number of kernel\nUser thread isn’t bound to a particular kernel thread\n\nIf kernel thread has to block and was supporting 3 user threads, the others can migrate\n\nAllows parallelism\nProgrammer has more control (scheduling in user space)\nSounds like the best of all worlds, right?\n\nCan be hard to implement without decent language support\n\ngoroutines are a notable example of M:M in reality (though they are achieved through the Go runtime and not the kernel itself)"
+  },
+  {
+    "objectID": "day6.html#thread-models-one-to-one-11",
+    "href": "day6.html#thread-models-one-to-one-11",
+    "title": "CSC 453",
+    "section": "Thread models: one-to-one (1:1)",
+    "text": "Thread models: one-to-one (1:1)\n\nNumber of kernel-level threads is equal to the number of user-level threads\nCan operate in parallel\nIf one blocks, others can continue\nDownsides?\n\nLose the advantage of fast switching between user threads\nAny new user thread requires kernel thread creation: expensive\nProgrammer loses scheduling control: kernel makes decisions\n\nVery popular model: Linux & Windows\n\nEasy to implement\nMost machines have multiple cores so we can support a lot of kernel threads"
+  },
+  {
+    "objectID": "day6.html#which-models-make-sense",
+    "href": "day6.html#which-models-make-sense",
+    "title": "CSC 453",
+    "section": "Which models make sense?",
+    "text": "Which models make sense?\n\nDistributed scientific computing\nEmbedded system\nNGINX web servers"
+  },
+  {
+    "objectID": "day6.html#which-models-make-sense-1",
+    "href": "day6.html#which-models-make-sense-1",
+    "title": "CSC 453",
+    "section": "Which models make sense?",
+    "text": "Which models make sense?\n\nDistributed scientific computing\n\n1:1 - In scientific computing, you want predictable, full-speed access to hardware, not an extra runtime scheduler in the way\n\nEmbedded system\n\nN:1 - In embedded systems, simplicity and determinism matter more than scalability. You may only have a single core\n\nNGINX web servers\n\nM:N - NGINX multiplexes connections (user-level work) onto a small number of kernel threads"
+  },
+  {
+    "objectID": "day6.html#section-2",
+    "href": "day6.html#section-2",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
     "objectID": "day2.html#admin",
     "href": "day2.html#admin",
     "title": "CSC 453",
