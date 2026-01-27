@@ -802,7 +802,7 @@
     "href": "day6.html#admin",
     "title": "CSC 453",
     "section": "Admin",
-    "text": "Admin\n\nMidterm 1 Thursday\nProgramming assignment 2 due Monday"
+    "text": "Admin\n\nMidterm 1 Thursday\nNo quiz this week\nLab 4 due Monday\nProgramming assignment 2 due Monday"
   },
   {
     "objectID": "day6.html#questions-to-consider",
@@ -872,7 +872,7 @@
     "href": "day6.html#interactive-algorithms-multi-level-feedback-queue-mlfq",
     "title": "CSC 453",
     "section": "Interactive algorithms: Multi-Level Feedback Queue (MLFQ)",
-    "text": "Interactive algorithms: Multi-Level Feedback Queue (MLFQ)\n\nA process can move between the various queues\nMetrics for movement:\n\nProcess requirements (we serve fast processes quickly)\nOver consumption\nChange in priority\nAge"
+    "text": "Interactive algorithms: Multi-Level Feedback Queue (MLFQ)\n\nA process can move between the various queues (goal is to avoid starvation present in MLQ)\nMetrics for movement:\n\nProcess requirements (we serve fast processes quickly)\nOver consumption\nChange in priority\nAge"
   },
   {
     "objectID": "day6.html#mlfq-rules",
@@ -907,7 +907,14 @@
     "href": "day6.html#mlfq-example-two-processes-2",
     "title": "CSC 453",
     "section": "MLFQ example: two processes",
-    "text": "MLFQ example: two processes\n\n\n\nScenario 1: Perfectly fine\nScenario 2: programmer can game the algorithm to remain at high priority\nScenario 3: multiple small processes keep lead to starvation"
+    "text": "MLFQ example: two processes\n\n\n\nScenario 1: Perfectly fine\nScenario 2: programmer can game the algorithm to remain at high priority\nScenario 3: multiple small processes can lead to starvation"
+  },
+  {
+    "objectID": "day6.html#mlfq-how-can-we-solve-gaming",
+    "href": "day6.html#mlfq-how-can-we-solve-gaming",
+    "title": "CSC 453",
+    "section": "MLFQ: how can we solve gaming?",
+    "text": "MLFQ: how can we solve gaming?"
   },
   {
     "objectID": "day6.html#mlfq-solving-gaming",
@@ -917,18 +924,39 @@
     "text": "MLFQ: solving gaming\n\n\n\nRule 4 (new): Once a job uses up its time allotment at a given level (regardless of how many times it has given up the CPU), its priority is reduced (i.e., it moves down one queue)"
   },
   {
+    "objectID": "day6.html#mlfq-how-can-we-avoid-starvation",
+    "href": "day6.html#mlfq-how-can-we-avoid-starvation",
+    "title": "CSC 453",
+    "section": "MLFQ: how can we avoid starvation?",
+    "text": "MLFQ: how can we avoid starvation?"
+  },
+  {
     "objectID": "day6.html#mlfq-solving-starvation",
     "href": "day6.html#mlfq-solving-starvation",
     "title": "CSC 453",
     "section": "MLFQ: solving starvation",
-    "text": "MLFQ: solving starvation\n\n\n\nRule 5: After some time period, move all the jobs in the system to the topmost queue\n\nSolves starvation\nIf a long running process evolves to be more interactive, it gets promoted"
+    "text": "MLFQ: solving starvation\n\n\n\nRule 5: After some time period, move all the jobs in the system to the topmost queue\n\nSolves starvation\nBonus: if a long running process evolves to be more interactive, it gets promoted"
   },
   {
     "objectID": "day6.html#what-scheduler-should-we-use",
     "href": "day6.html#what-scheduler-should-we-use",
     "title": "CSC 453",
     "section": "What scheduler should we use?",
-    "text": "What scheduler should we use?\n\nTicket booking system\n\nFCFS: fairness\n\nPrint server\n\nSJF could make sense\n\nWeb server\n\nRR: fairness\n\nStreaming service\n\nSRTF: need to quickly respond to something going wrong e.g., buffering\n\nGeneral operating systems\n\nMLFQ: need to handle a mix"
+    "text": "What scheduler should we use?\n\nTicket booking system\n\nFCFS: fairness\n\nPrint server\n\nSJF could make sense\n\nWeb server\n\nRR: fairness and short response time\n\nGeneral operating systems\n\nMLFQ: need to handle a mix"
+  },
+  {
+    "objectID": "day6.html#linux-scheduling",
+    "href": "day6.html#linux-scheduling",
+    "title": "CSC 453",
+    "section": "Linux scheduling",
+    "text": "Linux scheduling\n\nCompletely Fair Scheduler (CFS)\nFair-share scheduling (see lottery and stride scheduling in the text if you want to learn more)\nBased on vruntime (how long any process has run): lowest vruntime runs next\nDivide sched_latency by # processes to determine a dynamic quantum (floor set by min_granularity)\n\nWhy do we need a floor?"
+  },
+  {
+    "objectID": "day6.html#linux-cfs",
+    "href": "day6.html#linux-cfs",
+    "title": "CSC 453",
+    "section": "Linux CFS",
+    "text": "Linux CFS\n\nRed-Black tree includes only running (or ready) processes\nBalanced such that operations are \\(O(log n)\\)\nVery straightforward to find the next job (smallest vruntime) to run\nSleeper fairness: processes waiting on I/O are given “credit” for their wait time\nPeople are actively working on new features"
   },
   {
     "objectID": "day6.html#section",
@@ -977,7 +1005,7 @@
     "href": "day6.html#why-do-we-use-threads-pros",
     "title": "CSC 453",
     "section": "Why do we use threads? Pros",
-    "text": "Why do we use threads? Pros\n\nTo support multiple activities within a single process\nResponsiveness: a process may continue to run, even if part of it is blocked (depends on thread implementation)\nResource sharing: Process are isolated so can only communicate with help from the kernel; threads share a memory space and a process’s resources (e.g. files)\nEconomy: Allocating resources for multiple processes is costly, because it involves the kernel. Threads can be handled entirely in user space and are much faster to allocate and destroy. Allows for pop-up threads, dynamically created threads to support load\nHardware support: modern CPUs support multithreading (hyperthreading), where threads can run in parallel"
+    "text": "Why do we use threads? Pros\n\nTo support multiple activities within a single process\nResponsiveness: a process may continue to run, even if part of it is blocked (depends on thread implementation)\nResource sharing: Process are isolated so can only communicate with help from the kernel; threads share a memory space and a process’s resources (e.g. files)\nEconomy: Allocating resources for multiple processes is costly, because it involves the kernel. Threads can be handled entirely in user space and are much faster to allocate and destroy. Allows for pop-up threads, dynamically created threads to support load\nHardware support: modern CPUs support multithreading, where threads can run in parallel"
   },
   {
     "objectID": "day6.html#thread-cons",
@@ -991,28 +1019,28 @@
     "href": "day6.html#what-makes-more-sense-threads-or-process",
     "title": "CSC 453",
     "section": "What makes more sense, threads or process?",
-    "text": "What makes more sense, threads or process?\n\nWeb browser\nWeb server\nGUI apps\nMultimedia apps\nDB servers\nOS services"
+    "text": "What makes more sense, threads or process?\n\nWeb server\nGUI apps\nMultimedia apps\nDB servers\nOS services"
   },
   {
     "objectID": "day6.html#what-makes-more-sense-threads-or-process-1",
     "href": "day6.html#what-makes-more-sense-threads-or-process-1",
     "title": "CSC 453",
     "section": "What makes more sense, threads or process?",
-    "text": "What makes more sense, threads or process?\n\nWeb browser - process\nWeb server - thread\nGUI apps - thread\nMultimedia apps - thread\nDB servers - process\nOS services - process"
+    "text": "What makes more sense, threads or process?\n\nWeb server - thread (through there are many hybrid implementations)\nGUI apps - thread\nMultimedia apps - thread\nDB servers - both: postgres uses processes, MySQL is multithreaded\nOS services - process"
   },
   {
     "objectID": "day6.html#side-note-fork-and-threading",
     "href": "day6.html#side-note-fork-and-threading",
     "title": "CSC 453",
     "section": "Side note: fork() and threading",
-    "text": "Side note: fork() and threading\n\nWhat happens to threads when you fork()?\nShould a child inherit the threads of their parent?\nWhat happens if two threads are competing for the same resource? E.g., who gets the input from a keyboard or established network connection?\nWhat happens if a thread closes a file another expects to be open?\nIn reality (Linux): a child process, only the calling thread is replicated."
+    "text": "Side note: fork() and threading\n\nWhat happens to threads when you fork()?\nShould a child inherit the threads of their parent?\nWhat happens if two threads are competing for the same resource? E.g., who gets the input from a keyboard or established network connection?\nIn reality (Linux): a child process, only the calling thread is replicated."
   },
   {
     "objectID": "day6.html#a-word-of-caution-amdahls-law",
     "href": "day6.html#a-word-of-caution-amdahls-law",
     "title": "CSC 453",
     "section": "A word of caution: Amdahl’s Law",
-    "text": "A word of caution: Amdahl’s Law\n\nThreads are awesome, let’s parallelize everything, right?\nAmdahl’s Law identifies performance gains from adding additional cores to an application that has both serial and parallel components\n\n\\(S\\) is serial portion\n\\(N\\) processing cores \\[speedup \\le \\frac{1}{S + \\frac{(1-S)}{N}}\\]\n\nThat is, if application is 75% parallel / 25% serial, moving from 1 to 2 cores results in speedup of \\(1.6 \\times\\)\nAs \\(N\\) approaches infinity, speedup approaches \\(1 / S\\)\nExample: \\(S = 50%\\). You are capped at \\(2 \\times\\) speedup\nSerial portion of an application has disproportionate effect on performance gained by adding additional cores"
+    "text": "A word of caution: Amdahl’s Law\n\nThreads are awesome, let’s parallelize everything, right?\nAmdahl’s Law identifies performance gains from adding additional cores to an application that has both serial and parallel components\n\n\\(S\\) is serial portion\n\\(N\\) processing cores \\[speedup \\le \\frac{1}{S + \\frac{(1-S)}{N}}\\]\n\nThat is, if application is 75% parallel / 25% serial, moving from 1 to 2 cores results in speedup of \\(1.6 \\times\\)\nAs \\(N\\) approaches infinity, speedup approaches \\(1 / S\\)\nSerial portion has a disproportionate effect on performance"
   },
   {
     "objectID": "day6.html#section-1",
@@ -1040,21 +1068,21 @@
     "href": "day6.html#posix-threads-pthreads",
     "title": "CSC 453",
     "section": "POSIX threads (pthreads)",
-    "text": "POSIX threads (pthreads)\n\n60 calls, but the important ones are: pthread*\n\ncreate, exit, yield, join (Look familiar?)\n\nPthreads can be used as a user space library: all functionality happens in user space, and the kernel knows nothing about them\n\ncan run on kernels or CPUs with no thread support\norders of magnitude faster than a kernel trap (everything is a local function call)\ncustom schedulers"
+    "text": "POSIX threads (pthreads)\n\n60 calls, but the important ones are: pthread*\n\ncreate, exit, yield, join (Look familiar?)\n\nPthreads were historically (pre 2003) a user space library: all functionality happens in user space, and the kernel knew nothing about them\n\ncan run on kernels or CPUs with no thread support\norders of magnitude faster than a kernel trap (everything is a local function call)\ncustom schedulers"
   },
   {
     "objectID": "day6.html#pure-user-space-threads",
     "href": "day6.html#pure-user-space-threads",
     "title": "CSC 453",
     "section": "Pure user space threads",
-    "text": "Pure user space threads\n\nTotally unknown to the OS\nUser-level threads must “borrow” a kernel thread to run\nWhat happens when a thread makes an I/O-bound system call?\n\nAll threads will block, because the process is blocked\nSometimes a thread blocking a process is unavoidable: page fault: more later\n\nWhere we typically want threads is where there is a lot of I/O blocking or system calls: the web server example\n\nif we’re trapping to the kernel, are we really gaining anything?"
+    "text": "Pure user space threads\n\nTotally unknown to the OS\nUser-level threads must “borrow” a kernel thread to run\nWhat happens when a thread makes an I/O-bound system call?\n\nAll threads will block, because the process is blocked\nSometimes a thread blocking a process is unavoidable: page fault: more later\n\nWhere we typically want threads is where there is a lot of I/O blocking or system calls: the web server example"
   },
   {
     "objectID": "day6.html#kernel-threads",
     "href": "day6.html#kernel-threads",
     "title": "CSC 453",
     "section": "Kernel threads",
-    "text": "Kernel threads\n\nThread libraries can also have kernel support (most modern OSes support kernel threads)\nThere is no user space runtime environment or thread table: all is managed within the kernel\nSupport for multiple cores\nAll thread interfaces are system calls handled by the kernel"
+    "text": "Kernel threads\n\nThread libraries can also have kernel support (this is the common case today)\nThere is no user space runtime environment or thread table: all is managed within the kernel\nSupport for multiple cores\nAll thread interfaces are system calls handled by the kernel"
   },
   {
     "objectID": "day6.html#kernel-threads-contd",
@@ -1064,39 +1092,32 @@
     "text": "Kernel threads (cont’d)\n\nInstead of blocking on a system call, the kernel now has the intelligence to schedule another thread\nCreating and destroying threads comes at a higher cost (the kernel trap we were trying to avoid above)\n\nWhat should we do?\n\nThread pools: a collection of pre-allocated threads, assigned as needed"
   },
   {
-    "objectID": "day6.html#thread-design-models-many-to-one-n1",
-    "href": "day6.html#thread-design-models-many-to-one-n1",
+    "objectID": "day6.html#thread-design-models-many-to-one-m1",
+    "href": "day6.html#thread-design-models-many-to-one-m1",
     "title": "CSC 453",
-    "section": "Thread design models: many-to-one (N:1)",
-    "text": "Thread design models: many-to-one (N:1)\n\nKernel threads must support user level threads. There are multiple ways to pull this off\nMany-to-one (green threads)\n\nA single kernel level thread supports many user level threads\nSwitching between threads is fast (done in user level)\nNo parallelism (kernel thread is supporting only a single user thread at a time)\nIf any user thread makes an I/O blocking call, all user threads in that process are blocked"
+    "section": "Thread design models: many-to-one (M:1)",
+    "text": "Thread design models: many-to-one (M:1)\n\nKernel threads must support user level threads. There are multiple ways to pull this off\nMany-to-one\n\nA single kernel level thread supports many user level threads\nSwitching between threads is fast (done in user level)\nNo parallelism (kernel thread is supporting only a single user thread at a time)\nIf any user thread makes an I/O blocking call, all user threads in that process are blocked\n\nWhere does this make sense?\n\nIf you need complete control over scheduling\nIf you have no kernel or minimal RTOS kernel"
   },
   {
     "objectID": "day6.html#thread-models-many-to-many-mn",
     "href": "day6.html#thread-models-many-to-many-mn",
     "title": "CSC 453",
     "section": "Thread models: many-to-many (M:N)",
-    "text": "Thread models: many-to-many (M:N)\n\nSet of user threads supported by &lt;= number of kernel\nUser thread isn’t bound to a particular kernel thread\n\nIf kernel thread has to block and was supporting 3 user threads, the others can migrate\n\nAllows parallelism\nProgrammer has more control (scheduling in user space)\nSounds like the best of all worlds, right?\n\nCan be hard to implement without decent language support\n\ngoroutines are a notable example of M:M in reality (though they are achieved through the Go runtime and not the kernel itself)"
+    "text": "Thread models: many-to-many (M:N)\n\nSet of user threads supported by &lt;= number of kernel\nUser thread isn’t bound to a particular kernel thread\n\nIf kernel thread has to block and was supporting 3 user threads, the others can migrate\n\nAllows parallelism\nProgrammer has more control (scheduling in user space)\nSounds like the best of all worlds, right?\n\nCan be hard to implement without decent language support\nNow you have two schedulers to deal with (user space and kernel)\ngoroutines are a notable example of M:M in reality (though they are achieved through the Go runtime and not the kernel itself)"
   },
   {
     "objectID": "day6.html#thread-models-one-to-one-11",
     "href": "day6.html#thread-models-one-to-one-11",
     "title": "CSC 453",
     "section": "Thread models: one-to-one (1:1)",
-    "text": "Thread models: one-to-one (1:1)\n\nNumber of kernel-level threads is equal to the number of user-level threads\nCan operate in parallel\nIf one blocks, others can continue\nDownsides?\n\nLose the advantage of fast switching between user threads\nAny new user thread requires kernel thread creation: expensive\nProgrammer loses scheduling control: kernel makes decisions\n\nVery popular model: Linux & Windows\n\nEasy to implement\nMost machines have multiple cores so we can support a lot of kernel threads"
+    "text": "Thread models: one-to-one (1:1)\n\nNumber of kernel-level threads is equal to the number of user-level threads (dominant model today)\nCan operate in parallel\nIf one blocks, others can continue\nDownsides?\n\nLose the advantage of fast switching between user threads\nAny new user thread requires kernel thread creation: expensive\nProgrammer loses scheduling control: kernel makes decisions\n\nVery popular model: Linux & Windows\n\nEasy to implement\nMost machines have multiple cores so we can support a lot of kernel threads"
   },
   {
     "objectID": "day6.html#which-models-make-sense",
     "href": "day6.html#which-models-make-sense",
     "title": "CSC 453",
     "section": "Which models make sense?",
-    "text": "Which models make sense?\n\nDistributed scientific computing\nEmbedded system\nNGINX web servers"
-  },
-  {
-    "objectID": "day6.html#which-models-make-sense-1",
-    "href": "day6.html#which-models-make-sense-1",
-    "title": "CSC 453",
-    "section": "Which models make sense?",
-    "text": "Which models make sense?\n\nDistributed scientific computing\n\n1:1 - In scientific computing, you want predictable, full-speed access to hardware, not an extra runtime scheduler in the way\n\nEmbedded system\n\nN:1 - In embedded systems, simplicity and determinism matter more than scalability. You may only have a single core\n\nNGINX web servers\n\nM:N - NGINX multiplexes connections (user-level work) onto a small number of kernel threads"
+    "text": "Which models make sense?\n\nDistributed scientific computing\n\n1:1 - In scientific computing, you want predictable, full-speed access to hardware, not an extra runtime scheduler in the way\n\nEmbedded system\n\nM:1 - In embedded systems, simplicity and determinism matter more than scalability. You may only have a single core\n\nNGINX web servers\n\nM:N - NGINX multiplexes connections (user-level work) onto a small number of kernel threads"
   },
   {
     "objectID": "day6.html#section-2",
