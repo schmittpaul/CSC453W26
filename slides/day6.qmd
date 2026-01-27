@@ -13,6 +13,7 @@ format:
 ## Admin
 :::{.nonincremental}
 - Midterm 1 Thursday
+  - Reminder: all raw slide content is in the GitHub [repo](https://github.com/schmittpaul/CSC453W26) as *.qmd 
 - No quiz this week
 - Lab 4 due Monday
 - Programming assignment 2 due Monday
