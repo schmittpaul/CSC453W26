@@ -13,6 +13,8 @@ format:
 ## Admin
 :::{.nonincremental}
 - Midterm 1 Thursday
+- No quiz this week
+- Lab 4 due Monday
 - Programming assignment 2 due Monday
 :::
 
@@ -149,7 +151,7 @@ $$[(10-4) + 4 + 7] = 17/3 = 5.66$$
 ::::
 
 ## Interactive algorithms: Multi-Level Feedback Queue (MLFQ)
-- A process can move between the various queues
+- A process can move between the various queues (goal is to avoid starvation present in MLQ)
 - Metrics for movement:
   - Process requirements (we serve fast processes quickly)
   - Over consumption
@@ -202,7 +204,7 @@ $$[(10-4) + 4 + 7] = 17/3 = 5.66$$
 ::: {.column width="48%" .nonincremental}
 - Scenario 1: Perfectly fine
 - Scenario 2: programmer can game the algorithm to remain at high priority
-- Scenario 3: multiple small processes keep lead to starvation
+- Scenario 3: multiple small processes can lead to starvation
 :::
 
 ::: {.column width="2%"}
@@ -212,6 +214,8 @@ $$[(10-4) + 4 + 7] = 17/3 = 5.66$$
 ![](images/mlfq3.png)
 :::
 ::::
+
+## MLFQ: how can we solve gaming?
 
 ## MLFQ: solving gaming
 :::: {.columns}
@@ -227,12 +231,14 @@ $$[(10-4) + 4 + 7] = 17/3 = 5.66$$
 :::
 ::::
 
+## MLFQ: how can we avoid starvation?
+
 ## MLFQ: solving starvation
 :::: {.columns}
 ::: {.column width="43%" .nonincremental}
 - Rule 5: After some time period, move all the jobs in the system to the topmost queue
   - Solves starvation
-  - If a long running process evolves to be more interactive, it gets promoted
+  - Bonus: if a long running process evolves to be more interactive, it gets promoted
 
 :::
 
@@ -250,11 +256,23 @@ $$[(10-4) + 4 + 7] = 17/3 = 5.66$$
 - Print server
   - SJF could make sense
 - Web server
-  - RR: fairness
-- Streaming service
-  - SRTF: need to quickly respond to something going wrong e.g., buffering
+  - RR: fairness and short response time
 - General operating systems
   - MLFQ: need to handle a mix
+
+## Linux scheduling
+- Completely Fair Scheduler (CFS)
+- Fair-share scheduling (see lottery and stride scheduling in the text if you want to learn more)
+- Based on `vruntime` (how long any process has run): lowest `vruntime` runs next
+- Divide `sched_latency` by # processes to determine a *dynamic* quantum (floor set by `min_granularity`)
+  - Why do we need a floor?
+
+## Linux CFS
+- Red-Black tree includes only running (or ready) processes
+- Balanced such that operations are $O(log n)$
+- Very straightforward to find the next job (smallest `vruntime`) to run
+- Sleeper fairness: processes waiting on I/O are given "credit" for their wait time
+- [People are actively working on new features](https://www.phoronix.com/news/Linux-TIP-Time-Slice-Extension)
 
 
 ## {background-color="#6E404F"}
@@ -264,7 +282,7 @@ What isn't clear?
 Comments? Thoughts? 
 :::
 
-# Midterm boundary {background-color="#907845"}
+# Midterm 1 boundary {background-color="#907845"}
 
 # Threads {background-color="#40666e"}
 
@@ -309,7 +327,7 @@ Comments? Thoughts?
 - [Responsiveness]{.alert}: a process may continue to run, even if part of it is blocked (depends on thread implementation)
 - [Resource sharing]{.alert}: Process are isolated so can only communicate with help from the kernel; threads share a memory space and a process's resources (e.g. files)
 - [Economy]{.alert}: Allocating resources for multiple processes is costly, because it involves the kernel. Threads can be handled entirely in user space and are much faster to allocate and destroy. Allows for pop-up threads, dynamically created threads to support load
-- [Hardware support]{.alert}: modern CPUs support multithreading (hyperthreading), where threads can run in parallel
+- [Hardware support]{.alert}: modern CPUs support multithreading, where threads can run in parallel
 
 ## Thread cons
 - This is hard. Burdens programmer needs to solve:
@@ -324,7 +342,6 @@ Comments? Thoughts?
 
 ## What makes more sense, threads or process?
 :::{.nonincremental}
-- Web browser
 - Web server
 - GUI apps
 - Multimedia apps
@@ -334,11 +351,10 @@ Comments? Thoughts?
 
 ## What makes more sense, threads or process?
 :::{.nonincremental}
-- Web browser - process
-- Web server - thread
+- Web server - thread (through there are many hybrid implementations)
 - GUI apps - thread
 - Multimedia apps - thread
-- DB servers - process
+- DB servers - both: postgres uses processes, MySQL is multithreaded
 - OS services - process
 :::
 
@@ -346,8 +362,7 @@ Comments? Thoughts?
 - What happens to threads when you `fork()`?
 - Should a child inherit the threads of their parent?
 - What happens if two threads are competing for the same resource? E.g., who gets the input from a keyboard or established network connection?
-- What happens if a thread closes a file another expects to be open?
- - In reality (Linux): a child process, only the calling thread is replicated.
+- In reality (Linux): a child process, only the calling thread is replicated.
 
 
 ## A word of caution: Amdahl's Law
@@ -359,8 +374,7 @@ Comments? Thoughts?
 
 - That is, if application is 75% parallel / 25% serial, moving from 1 to 2 cores results in speedup of $1.6 \times$
 - As $N$ approaches infinity, speedup approaches $1 / S$
-- Example: $S = 50%$. You are capped at $2 \times$ speedup
-- **Serial portion of an application has disproportionate  effect on performance gained by adding additional cores**
+- **Serial portion has a disproportionate effect on performance**
 
 
 ## {background-color="#6E404F"}
@@ -387,7 +401,7 @@ Comments? Thoughts?
 ## POSIX threads (pthreads)
 - 60 calls, but the important ones are: `pthread*`
   - `create`, `exit`, `yield`, `join` (Look familiar?)
-- Pthreads can be used as a [user space]{.alert} library: all functionality happens in user space, and the kernel knows nothing about them
+- Pthreads were historically (pre 2003) a [user space]{.alert} library: all functionality happens in user space, and the kernel knew nothing about them
   - can run on kernels or CPUs with no thread support
   - orders of magnitude faster than a kernel trap (everything is a local function call)
   - custom schedulers
@@ -399,10 +413,9 @@ Comments? Thoughts?
   - All threads will block, because the process is blocked
   - Sometimes a thread blocking a process is unavoidable: page fault: more later
 - Where we typically want threads is where there is a lot of I/O blocking or system calls: the web server example
-  - if we're trapping to the kernel, are we really gaining anything?
 
 ## Kernel threads
-- Thread libraries can also have kernel support (most modern OSes support kernel threads)
+- Thread libraries can also have kernel support (this is the common case today)
 - There is no user space runtime environment or thread table: all is managed within the kernel
 - Support for multiple cores 
 - All thread interfaces are system calls handled by the kernel
@@ -413,13 +426,16 @@ Comments? Thoughts?
   - What should we do?
     - [Thread pools]{.alert}: a collection of pre-allocated threads, assigned as needed
 
-## Thread design models: many-to-one (N:1)
+## Thread design models: many-to-one (M:1)
 - Kernel threads must support user level threads. There are multiple ways to pull this off
-- [Many-to-one]{.alert} (green threads)
+- [Many-to-one]{.alert}
   - A single kernel level thread supports many user level threads
   - Switching between threads is fast (done in user level)
   - No parallelism (kernel thread is supporting only a single user thread at a time)
   - If any user thread makes an I/O blocking call, all user threads in that process are blocked 
+- Where does this make sense?
+  - If you need complete control over scheduling
+  - If you have no kernel or minimal RTOS kernel
 
 ## Thread models: many-to-many (M:N)
 - Set of user threads supported by <= number of kernel 
@@ -429,11 +445,12 @@ Comments? Thoughts?
 - Programmer has more control (scheduling in user space)
 - Sounds like the best of all worlds, right?
   - Can be hard to implement without decent language support
-    - goroutines are a notable example of M:M in reality (though they are achieved through the Go runtime and not the kernel itself)
+  - Now you have two schedulers to deal with (user space and kernel)
+  - goroutines are a notable example of M:M in reality (though they are achieved through the Go runtime and not the kernel itself)
 
 ## Thread models: one-to-one (1:1)
 
-- Number of kernel-level threads is equal to the number of user-level threads
+- Number of kernel-level threads is equal to the number of user-level threads (dominant model today)
 - Can operate in parallel
 - If one blocks, others can continue
 - Downsides?
@@ -444,18 +461,12 @@ Comments? Thoughts?
   - Easy to implement
   - Most machines have multiple cores so we can support a lot of kernel threads
 
-## Which models make sense?
-:::{.nonincremental}
-- Distributed scientific computing
-- Embedded system
-- NGINX web servers
-:::
 
 ## Which models make sense?
 - Distributed scientific computing
   - 1:1 - In scientific computing, you want predictable, full-speed access to hardware, not an extra runtime scheduler in the way
 - Embedded system
-  - N:1 - In embedded systems, simplicity and determinism matter more than scalability. You may only have a single core
+  - M:1 - In embedded systems, simplicity and determinism matter more than scalability. You may only have a single core
 - NGINX web servers
   - M:N - NGINX multiplexes connections (user-level work) onto a small number of kernel threads
 
