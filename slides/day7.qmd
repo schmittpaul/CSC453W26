@@ -13,6 +13,8 @@ format:
 ## Admin
 :::{.nonincremental}
 - Break from programming assignments this week
+- Midterm results are on Gradescope, please submit all regrade requests by tomorrow (2/4/2026) at 23:59
+  ![](images/midterm_1.png)
 :::
 
 
@@ -20,9 +22,9 @@ format:
 
 ## Questions to consider
 :::{.nonincremental}
-- What is the difference between user threads and kernel threads?
+- How do user threads and kernel threads relate? 
 - What are the different kernel thread models and how do they compare?
-- How do the different thread models trade off between scheduling control and parallelism?
+  - When should you use each?
 :::
 
 ## First things first
@@ -30,21 +32,23 @@ format:
 - A process can only make progress if at least one of its kernel threads is scheduled on a core
 - CPUs run kernel threads, not processes
 
-## POSIX threads (pthreads)
+<!-- ## POSIX threads (pthreads)
 - 60 calls, but the important ones are: `pthread*`
   - `create`, `exit`, `yield`, `join` (Look familiar?)
 - Pthreads were historically (pre 2003) a [user space]{.alert} library: all functionality happens in user space, and the kernel knew nothing about them
   - can run on kernels or CPUs with no thread support
   - orders of magnitude faster than a kernel trap (everything is a local function call)
-  - custom schedulers
+  - custom schedulers -->
 
-## Pure user space threads
+## User space threads
 - Totally unknown to the OS
+- Thread library manages thread table and scheduling
+- Context switch is a function call within the process
 - User-level threads must "borrow" a kernel thread to run
-- What happens when a thread makes an I/O-bound system call?
+- What happens when a pure user space thread makes an I/O-bound system call?
   - All threads will block, because the process is blocked
   - Sometimes a thread blocking a process is unavoidable: page fault: more later
-- Where we typically want threads is where there is a lot of I/O blocking or system calls: the web server example
+<!-- - Where we typically want threads is where there is a lot of I/O blocking or system calls: the web server example -->
 
 ## Kernel threads
 - Thread libraries can also have kernel support (this is the common case today)
@@ -54,7 +58,7 @@ format:
 
 ## Kernel threads (cont'd)
 - Instead of blocking on a system call, the kernel now has the intelligence to schedule another thread
-- Creating and destroying threads comes at a higher cost (the kernel trap we were trying to avoid above)
+- Creating and destroying threads comes at a higher cost (a kernel TRAP)
   - What should we do?
     - [Thread pools]{.alert}: a collection of pre-allocated threads, assigned as needed
 
@@ -74,11 +78,12 @@ format:
 - User thread isn't bound to a particular kernel thread
   - If kernel thread has to block and was supporting 3 user threads, the others can migrate
 - Allows parallelism
-- Programmer has more control (scheduling in user space)
 - Sounds like the best of all worlds, right?
   - Can be hard to implement without decent language support
   - Now you have two schedulers to deal with (user space and kernel)
-  - goroutines are a notable example of M:M in reality (though they are achieved through the Go runtime and not the kernel itself)
+  - goroutines are a notable example of M:N in reality (though they are achieved through the Go runtime and not the kernel itself)
+- When to use?
+  - When you need maximum concurrency (thousands to millions of threads) and have custom scheduling needs
 
 ## Thread models: one-to-one (1:1)
 
@@ -179,29 +184,31 @@ Comments? Thoughts?
 - Two processes: $P_i$ and $P_j$
 - Two shared data items: `int turn; bool flag[2];`
   ```{.c}
+  Pis code:
   do {
-    flag[i] = TRUE;
-    turn = j;
-    while (flag[j] && turn == j);
+    flag[i] = TRUE;                // I want to enter critical section
+    turn = j;                      // let Pj go first if it wants
+    while (flag[j] && turn == j);  // busy wait
     //CRITICAL SECTION
-    flag[i] = FALSE;
+    flag[i] = FALSE;               // Im leaving critical section
     //REMAINDER
   }while(TRUE);
   ```
   - turn indicates whose turn it is: `turn == i` → $P_i$'s turn
   - if `flag[i] == true` → $P_i$ is ready for the critical section
-- To enter: $P_j$ sets `flag[i] = true` and `turn = j`
+- To enter: $P_i$ sets `flag[i] = true` and `turn = j`
   - i.e., $P_i$ demurs to $P_j$; if they are both ready turn will get set to?
     - Whomever runs last sets the turn to the other process 
 
 ## Peterson's solution (cont'd)
 ```{.c}
+Pis code:
 do {
-  flag[i] = TRUE;
-  turn = j;
-  while (flag[j] && turn == j);
+  flag[i] = TRUE;                // I want to enter critical section
+  turn = j;                      // let Pj go first if it wants
+  while (flag[j] && turn == j);  // busy wait
   //CRITICAL SECTION
-  flag[i] = FALSE;
+  flag[i] = FALSE;               // Im leaving critical section
   //REMAINDER
 }while(TRUE);
 ```
@@ -212,12 +219,13 @@ do {
 
 ## Peterson's solution (cont'd)
 ```{.c}
+Pis code:
 do {
-  flag[i] = TRUE;
-  turn = j;
-  while (flag[j] && turn == j);
+  flag[i] = TRUE;                // I want to enter critical section
+  turn = j;                      // let Pj go first if it wants
+  while (flag[j] && turn == j);  // busy wait
   //CRITICAL SECTION
-  flag[i] = FALSE;
+  flag[i] = FALSE;               // Im leaving critical section
   //REMAINDER
 }while(TRUE);
 ```
@@ -228,12 +236,13 @@ do {
 
 ## Peterson's solution (cont'd)
 ```{.c}
+Pis code:
 do {
-  flag[i] = TRUE;
-  turn = j;
-  while (flag[j] && turn == j);
+  flag[i] = TRUE;                // I want to enter critical section
+  turn = j;                      // let Pj go first if it wants
+  while (flag[j] && turn == j);  // busy wait
   //CRITICAL SECTION
-  flag[i] = FALSE;
+  flag[i] = FALSE;               // Im leaving critical section
   //REMAINDER
 }while(TRUE);
 ```
