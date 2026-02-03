@@ -67,14 +67,14 @@
     "href": "day7.html#admin",
     "title": "CSC 453",
     "section": "Admin",
-    "text": "Admin\n\nBreak from programming assignments this week"
+    "text": "Admin\n\nBreak from programming assignments this week\nMidterm results are on Gradescope, please submit all regrade requests by tomorrow (2/4/2026) at 23:59"
   },
   {
     "objectID": "day7.html#questions-to-consider",
     "href": "day7.html#questions-to-consider",
     "title": "CSC 453",
     "section": "Questions to consider",
-    "text": "Questions to consider\n\nWhat is the difference between user threads and kernel threads?\nWhat are the different kernel thread models and how do they compare?\nHow do the different thread models trade off between scheduling control and parallelism?"
+    "text": "Questions to consider\n\nHow do user threads and kernel threads relate?\nWhat are the different kernel thread models and how do they compare?\n\nWhen should you use each?"
   },
   {
     "objectID": "day7.html#first-things-first",
@@ -84,18 +84,11 @@
     "text": "First things first\n\nA kernel thread is the unit of execution that the OS can run on a CPU core\nA process can only make progress if at least one of its kernel threads is scheduled on a core\nCPUs run kernel threads, not processes"
   },
   {
-    "objectID": "day7.html#posix-threads-pthreads",
-    "href": "day7.html#posix-threads-pthreads",
+    "objectID": "day7.html#user-space-threads",
+    "href": "day7.html#user-space-threads",
     "title": "CSC 453",
-    "section": "POSIX threads (pthreads)",
-    "text": "POSIX threads (pthreads)\n\n60 calls, but the important ones are: pthread*\n\ncreate, exit, yield, join (Look familiar?)\n\nPthreads were historically (pre 2003) a user space library: all functionality happens in user space, and the kernel knew nothing about them\n\ncan run on kernels or CPUs with no thread support\norders of magnitude faster than a kernel trap (everything is a local function call)\ncustom schedulers"
-  },
-  {
-    "objectID": "day7.html#pure-user-space-threads",
-    "href": "day7.html#pure-user-space-threads",
-    "title": "CSC 453",
-    "section": "Pure user space threads",
-    "text": "Pure user space threads\n\nTotally unknown to the OS\nUser-level threads must “borrow” a kernel thread to run\nWhat happens when a thread makes an I/O-bound system call?\n\nAll threads will block, because the process is blocked\nSometimes a thread blocking a process is unavoidable: page fault: more later\n\nWhere we typically want threads is where there is a lot of I/O blocking or system calls: the web server example"
+    "section": "User space threads",
+    "text": "User space threads\n\nTotally unknown to the OS\nThread library manages thread table and scheduling\nContext switch is a function call within the process\nUser-level threads must “borrow” a kernel thread to run\nWhat happens when a pure user space thread makes an I/O-bound system call?\n\nAll threads will block, because the process is blocked\nSometimes a thread blocking a process is unavoidable: page fault: more later"
   },
   {
     "objectID": "day7.html#kernel-threads",
@@ -109,7 +102,7 @@
     "href": "day7.html#kernel-threads-contd",
     "title": "CSC 453",
     "section": "Kernel threads (cont’d)",
-    "text": "Kernel threads (cont’d)\n\nInstead of blocking on a system call, the kernel now has the intelligence to schedule another thread\nCreating and destroying threads comes at a higher cost (the kernel trap we were trying to avoid above)\n\nWhat should we do?\n\nThread pools: a collection of pre-allocated threads, assigned as needed"
+    "text": "Kernel threads (cont’d)\n\nInstead of blocking on a system call, the kernel now has the intelligence to schedule another thread\nCreating and destroying threads comes at a higher cost (a kernel TRAP)\n\nWhat should we do?\n\nThread pools: a collection of pre-allocated threads, assigned as needed"
   },
   {
     "objectID": "day7.html#thread-design-models-many-to-one-m1",
@@ -123,7 +116,7 @@
     "href": "day7.html#thread-models-many-to-many-mn",
     "title": "CSC 453",
     "section": "Thread models: many-to-many (M:N)",
-    "text": "Thread models: many-to-many (M:N)\n\nSet of user threads supported by &lt;= number of kernel\nUser thread isn’t bound to a particular kernel thread\n\nIf kernel thread has to block and was supporting 3 user threads, the others can migrate\n\nAllows parallelism\nProgrammer has more control (scheduling in user space)\nSounds like the best of all worlds, right?\n\nCan be hard to implement without decent language support\nNow you have two schedulers to deal with (user space and kernel)\ngoroutines are a notable example of M:M in reality (though they are achieved through the Go runtime and not the kernel itself)"
+    "text": "Thread models: many-to-many (M:N)\n\nSet of user threads supported by &lt;= number of kernel\nUser thread isn’t bound to a particular kernel thread\n\nIf kernel thread has to block and was supporting 3 user threads, the others can migrate\n\nAllows parallelism\nSounds like the best of all worlds, right?\n\nCan be hard to implement without decent language support\nNow you have two schedulers to deal with (user space and kernel)\ngoroutines are a notable example of M:N in reality (though they are achieved through the Go runtime and not the kernel itself)\n\nWhen to use?\n\nWhen you need maximum concurrency (thousands to millions of threads) and have custom scheduling needs"
   },
   {
     "objectID": "day7.html#thread-models-one-to-one-11",
@@ -200,28 +193,28 @@
     "href": "day7.html#petersons-solution",
     "title": "CSC 453",
     "section": "Peterson’s solution",
-    "text": "Peterson’s solution\n\nTwo processes: \\(P_i\\) and \\(P_j\\)\nTwo shared data items: int turn; bool flag[2];\ndo {\n  flag[i] = TRUE;\n  turn = j;\n  while (flag[j] && turn == j);\n  //CRITICAL SECTION\n  flag[i] = FALSE;\n  //REMAINDER\n}while(TRUE);\n\nturn indicates whose turn it is: turn == i → \\(P_i\\)’s turn\nif flag[i] == true → \\(P_i\\) is ready for the critical section\n\nTo enter: \\(P_j\\) sets flag[i] = true and turn = j\n\ni.e., \\(P_i\\) demurs to \\(P_j\\); if they are both ready turn will get set to?\n\nWhomever runs last sets the turn to the other process"
+    "text": "Peterson’s solution\n\nTwo processes: \\(P_i\\) and \\(P_j\\)\nTwo shared data items: int turn; bool flag[2];\nPis code:\ndo {\n  flag[i] = TRUE;                // I want to enter critical section\n  turn = j;                      // let Pj go first if it wants\n  while (flag[j] && turn == j);  // busy wait\n  //CRITICAL SECTION\n  flag[i] = FALSE;               // Im leaving critical section\n  //REMAINDER\n}while(TRUE);\n\nturn indicates whose turn it is: turn == i → \\(P_i\\)’s turn\nif flag[i] == true → \\(P_i\\) is ready for the critical section\n\nTo enter: \\(P_i\\) sets flag[i] = true and turn = j\n\ni.e., \\(P_i\\) demurs to \\(P_j\\); if they are both ready turn will get set to?\n\nWhomever runs last sets the turn to the other process"
   },
   {
     "objectID": "day7.html#petersons-solution-contd",
     "href": "day7.html#petersons-solution-contd",
     "title": "CSC 453",
     "section": "Peterson’s solution (cont’d)",
-    "text": "Peterson’s solution (cont’d)\ndo {\n  flag[i] = TRUE;\n  turn = j;\n  while (flag[j] && turn == j);\n  //CRITICAL SECTION\n  flag[i] = FALSE;\n  //REMAINDER\n}while(TRUE);\n\nDoes this meet the three solution requirements?\nMutual exclusion: under what conditions can a process be in the critical section?\n\n\\(P_i\\) only enters if flag[j] is false or turn == i\nConversely, if \\(P_i\\) and \\(P_j\\) are in the CS, then flag[i] == flag[j]; this implies both \\(P_i\\) and \\(P_j\\) terminated their whiles at the same time; BUT, in order for this to be true, turn must be both 0 and 1 (Contradiction)"
+    "text": "Peterson’s solution (cont’d)\nPis code:\ndo {\n  flag[i] = TRUE;                // I want to enter critical section\n  turn = j;                      // let Pj go first if it wants\n  while (flag[j] && turn == j);  // busy wait\n  //CRITICAL SECTION\n  flag[i] = FALSE;               // Im leaving critical section\n  //REMAINDER\n}while(TRUE);\n\nDoes this meet the three solution requirements?\nMutual exclusion: under what conditions can a process be in the critical section?\n\n\\(P_i\\) only enters if flag[j] is false or turn == i\nConversely, if \\(P_i\\) and \\(P_j\\) are in the CS, then flag[i] == flag[j]; this implies both \\(P_i\\) and \\(P_j\\) terminated their whiles at the same time; BUT, in order for this to be true, turn must be both 0 and 1 (Contradiction)"
   },
   {
     "objectID": "day7.html#petersons-solution-contd-1",
     "href": "day7.html#petersons-solution-contd-1",
     "title": "CSC 453",
     "section": "Peterson’s solution (cont’d)",
-    "text": "Peterson’s solution (cont’d)\ndo {\n  flag[i] = TRUE;\n  turn = j;\n  while (flag[j] && turn == j);\n  //CRITICAL SECTION\n  flag[i] = FALSE;\n  //REMAINDER\n}while(TRUE);\n\nProgress: Is there a condition where \\(P_i\\) can’t enter the CS?\n\nThere is no condition under which \\(P_i\\) cannot (eventually) enter the CS; either the other process will set turn == i or it is already set\n\nBounded Waiting: How long will \\(P_i\\) wait in the best/worst case?\n\n\\(P_i\\) will enter after at most one entry by \\(P_j\\)"
+    "text": "Peterson’s solution (cont’d)\nPis code:\ndo {\n  flag[i] = TRUE;                // I want to enter critical section\n  turn = j;                      // let Pj go first if it wants\n  while (flag[j] && turn == j);  // busy wait\n  //CRITICAL SECTION\n  flag[i] = FALSE;               // Im leaving critical section\n  //REMAINDER\n}while(TRUE);\n\nProgress: Is there a condition where \\(P_i\\) can’t enter the CS?\n\nThere is no condition under which \\(P_i\\) cannot (eventually) enter the CS; either the other process will set turn == i or it is already set\n\nBounded Waiting: How long will \\(P_i\\) wait in the best/worst case?\n\n\\(P_i\\) will enter after at most one entry by \\(P_j\\)"
   },
   {
     "objectID": "day7.html#petersons-solution-contd-2",
     "href": "day7.html#petersons-solution-contd-2",
     "title": "CSC 453",
     "section": "Peterson’s solution (cont’d)",
-    "text": "Peterson’s solution (cont’d)\ndo {\n  flag[i] = TRUE;\n  turn = j;\n  while (flag[j] && turn == j);\n  //CRITICAL SECTION\n  flag[i] = FALSE;\n  //REMAINDER\n}while(TRUE);\n\nDo you see any issues with this solution?\n\nLimitation: Only works for two processes\nModern architectures may also break this solution\n\nProcessors and/or compilers can reorder reads and writes that have no dependencies\nMultithreaded applications could lead to issues"
+    "text": "Peterson’s solution (cont’d)\nPis code:\ndo {\n  flag[i] = TRUE;                // I want to enter critical section\n  turn = j;                      // let Pj go first if it wants\n  while (flag[j] && turn == j);  // busy wait\n  //CRITICAL SECTION\n  flag[i] = FALSE;               // Im leaving critical section\n  //REMAINDER\n}while(TRUE);\n\nDo you see any issues with this solution?\n\nLimitation: Only works for two processes\nModern architectures may also break this solution\n\nProcessors and/or compilers can reorder reads and writes that have no dependencies\nMultithreaded applications could lead to issues"
   },
   {
     "objectID": "day7.html#section-1",
