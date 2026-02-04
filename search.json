@@ -630,6 +630,489 @@
     "text": "What isn’t clear?\nComments? Thoughts?"
   },
   {
+    "objectID": "day8.html#admin",
+    "href": "day8.html#admin",
+    "title": "CSC 453",
+    "section": "Admin",
+    "text": "Admin\n\nQuiz due Friday\nLab (synchronization and deadlock) due Monday"
+  },
+  {
+    "objectID": "day8.html#questions-to-consider",
+    "href": "day8.html#questions-to-consider",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nHow do synchronization solutions compare in implementation / function?\nWhy can busy-waiting primitives cause problems like priority inversion, and how do blocking primitives help address this?\nWhen would you choose a counting semaphore versus a binary semaphore or mutex, and what distinguishes them?"
+  },
+  {
+    "objectID": "day8.html#semaphores",
+    "href": "day8.html#semaphores",
+    "title": "CSC 453",
+    "section": "Semaphores",
+    "text": "Semaphores\n\n\n\nSynchronization tool that provides more sophisticated ways (than mutex locks) for processes to synchronize their activities\nSemaphore S: integer variable\nCan only be accessed via two atomic operations\n\nwait() and signal()\n\nOriginally called P() and V() (because, Dutch - another Dijkstra invention)\n\n\nDo not have ownership, any thread can signal (increment) or wait (decrement)\n\n\n\n\nwait(S) { \n    while (S &lt;= 0)\n       ; // busy\n    S--;\n}\n\nsignal(S) { \n    S++;\n}"
+  },
+  {
+    "objectID": "day8.html#semaphores-contd",
+    "href": "day8.html#semaphores-contd",
+    "title": "CSC 453",
+    "section": "Semaphores (cont’d)",
+    "text": "Semaphores (cont’d)\n\n\n\nBinary semaphore: integer value can range only between 0 and 1\n\nFunctionally the same as a mutex (often when people call something a mutex it’s actually a binary semaphore)\n\n\n\n\n\ndo{\n  wait(mutex);\n  //CS\n  signal(mutex);\n}while(TRUE);\n\n\nCounting semaphore: integer value can range over an unrestricted domain\n\nWhen would this make sense?\n\nProtect a finite set of resources rather than a single one (e.g., you have a pool of db connections that can be shared by processes)\nInitialize S to the number of resources\nDecrement S each time someone grabs a resource, increment when they release"
+  },
+  {
+    "objectID": "day8.html#semaphores-contd-1",
+    "href": "day8.html#semaphores-contd-1",
+    "title": "CSC 453",
+    "section": "Semaphores (cont’d)",
+    "text": "Semaphores (cont’d)\n\n\n\nCan also be used to force synchronization\nConsider \\(P_1\\) and \\(P_2\\) that with two statements \\(S_1\\) and \\(S_2\\) and the requirement that \\(S_1\\) to happen before \\(S_2\\)\n\n\n\n\nP1:\n   S1;\n   signal(sync);\nP2:\n   wait(sync);\n   S2;"
+  },
+  {
+    "objectID": "day8.html#blocking-semaphores",
+    "href": "day8.html#blocking-semaphores",
+    "title": "CSC 453",
+    "section": "Blocking semaphores",
+    "text": "Blocking semaphores\n\n\n\nWe add sleep() and wakeup() to the underlying implementation\nCall to wait, and semaphore not available, process is blocked with sleep() (wait state) and placed on a waiting queue\nBlocked processes are notified of an available semaphore by the wakeup() operation\n\ngoes from waiting to ready\nAble to achieve bounded wait and progress with FIFO queue\n\n\n\n\n\nwait(semaphore *S) { \n   S-&gt;value--; \n   if (S-&gt;value &lt; 0) {      \n      add process to S-&gt;list; \n      sleep(); \n   } \n}\n\nsignal(semaphore *S) { \n   S-&gt;value++; \n   if (S-&gt;value &lt;= 0) {      \n      remove P from S-&gt;list; \n      wakeup(P); \n   } \n}"
+  },
+  {
+    "objectID": "day8.html#mutexes-vs.-semaphores",
+    "href": "day8.html#mutexes-vs.-semaphores",
+    "title": "CSC 453",
+    "section": "Mutexes vs. semaphores",
+    "text": "Mutexes vs. semaphores\n\nMutexes are generally lighter weight / faster\nSemaphores can support multiple instances\nSemaphores don’t have the ownership limitations"
+  },
+  {
+    "objectID": "day8.html#choose-your-primitive",
+    "href": "day8.html#choose-your-primitive",
+    "title": "CSC 453",
+    "section": "Choose your primitive",
+    "text": "Choose your primitive\n\nFor each, choose between: atomic instructions; futexes; spin lock mutexes; semaphores\nScenario 1: You need to protect a critical section where only one thread should execute at a time, and the critical section is expected to be held for a relatively long duration.\n\nFutex\n\nScenario 2: You have a pool of database connections, and you need to limit the number of threads that can access these connections simultaneously.\n\nCounting semaphore"
+  },
+  {
+    "objectID": "day8.html#choose-your-primitive-contd",
+    "href": "day8.html#choose-your-primitive-contd",
+    "title": "CSC 453",
+    "section": "Choose your primitive (cont’d)",
+    "text": "Choose your primitive (cont’d)\n\nFor each, choose between: atomic instructions; futexes; spin lock mutexes; semaphores\nScenario 3: You need to increment a shared counter frequently, and the operation is very quick.\n\nAtomic instruction\n\nScenario 4: You need to protect a critical section where only one thread should execute at a time, but the critical section is expected to be held for a very short duration.\n\nSpin lock mutex"
+  },
+  {
+    "objectID": "day8.html#beware-mistakes-are-easy-to-make",
+    "href": "day8.html#beware-mistakes-are-easy-to-make",
+    "title": "CSC 453",
+    "section": "Beware: mistakes are easy to make",
+    "text": "Beware: mistakes are easy to make\n\nIncorrect use of semaphore operations\n\nwrong order: signal(mutex) … wait(mutex)\nrepeating: wait(mutex) … wait(mutex)\nOmitting of wait(mutex) and/or signal(mutex)\n\nBe careful"
+  },
+  {
+    "objectID": "day8.html#monitors",
+    "href": "day8.html#monitors",
+    "title": "CSC 453",
+    "section": "Monitors",
+    "text": "Monitors\n\nSubtle mistakes with semaphores can lead to deadlocks, leading to monitors\nCan think of monitors as a library with an API (abstract data type)\n\nProcesses share the library, but not internal data (directly)\nThis requires language specific understanding of a monitor (C doesn’t have them, natively)\nMore relevant in languages like Java and other high-level languages that provide built-in monitor support"
+  },
+  {
+    "objectID": "day8.html#monitors-contd",
+    "href": "day8.html#monitors-contd",
+    "title": "CSC 453",
+    "section": "Monitors (cont’d)",
+    "text": "Monitors (cont’d)\n\n\n\nMain idea: only one processes can be active within a monitor at any instant\n\nUp to the compilers to ensure mutual exclusion on monitor procedures\n\nIt can use other sync primitives to achieve this: e.g. a semaphore or mutex\n\nWe’re offloading synchronization correctness to the compiler, (hopefully) lessening the chance for error by the user\n\nMonitor variables are private"
+  },
+  {
+    "objectID": "day8.html#condition-variables",
+    "href": "day8.html#condition-variables",
+    "title": "CSC 453",
+    "section": "Condition variables",
+    "text": "Condition variables\n\nMonitors often have condition variables\nCondition variables have wait() and signal() operations\n\nx.wait(): a process that invokes the operation is suspended until x.signal()\nx.signal(): resumes one of processes (if any) that invoked x.wait()\n\nIf no x.wait() on the variable, then it has no effect on the variable\n\n\nBig benefit of condition variables: x.broadcast()"
+  },
+  {
+    "objectID": "day8.html#mutexes-semaphores-monitors-condition-variables",
+    "href": "day8.html#mutexes-semaphores-monitors-condition-variables",
+    "title": "CSC 453",
+    "section": "Mutexes, semaphores, Monitors, Condition variables",
+    "text": "Mutexes, semaphores, Monitors, Condition variables\n\nMutexes and Semaphores are good for:\n\nSimple mutual exclusion\nSimple counting resources\n\nMonitors are good for:\n\nComplex synchronization between many threads\nThread-safe operations (only allow one thread into the monitor at a time)\n\nCondition variables are good for:\n\nProducer-consumer problems (consumer threads waiting on some condition, signaled when ready)\nWe want to make one or more threads sleep until a resource is ready"
+  },
+  {
+    "objectID": "day8.html#section",
+    "href": "day8.html#section",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day8.html#questions-to-consider-1",
+    "href": "day8.html#questions-to-consider-1",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat are the four necessary conditions for deadlock, and why must all four be present simultaneously?\nHow can Resource Allocation Graphs help us visualize and understand when deadlock might occur?\nWhy is a cycle necessary but not sufficient for deadlock when there are multiple instances of a resource?"
+  },
+  {
+    "objectID": "day8.html#deadlocks-1",
+    "href": "day8.html#deadlocks-1",
+    "title": "CSC 453",
+    "section": "Deadlocks",
+    "text": "Deadlocks\n\nIf we’re not careful about dependencies, we might create pathologies that lead to deadlock\n\nLike race conditions, may only happen sometimes, making them hard to identify and debug\n\nExample: Three processes, three resources of the same type, each process requires two resources to make progress\n\nThis can happen across a network as well, which is particularly hard to diagnose\n\nCan we detect and resolve these situations? Can we prevent them?"
+  },
+  {
+    "objectID": "day8.html#deadlock-example",
+    "href": "day8.html#deadlock-example",
+    "title": "CSC 453",
+    "section": "Deadlock example",
+    "text": "Deadlock example\n\nClassic example: Thread1 holds lock L1 and is waiting for lock L2. Thread2 holds L2 and is waiting for L1\n  Thread 1:                       Thread 2:\n  pthread_mutex_lock(L1);         pthread_mutex_lock(L2);\n  pthread_mutex_lock(L2);         pthread_mutex_lock(L1);"
+  },
+  {
+    "objectID": "day8.html#deadlock-characteristics",
+    "href": "day8.html#deadlock-characteristics",
+    "title": "CSC 453",
+    "section": "Deadlock characteristics",
+    "text": "Deadlock characteristics\n\nDefinition: A set of processes are deadlocked if each process in the set is waiting for an event that only another process in the set can cause.\n\nResource deadlock is the most common (and what we’ll focus on generally)\nCommunication deadlock: e.g., Process A sends a message to B, then sleeps until reply; Process B sleeps until it receives a message from A; message is lost"
+  },
+  {
+    "objectID": "day8.html#conditions-for-deadlock",
+    "href": "day8.html#conditions-for-deadlock",
+    "title": "CSC 453",
+    "section": "Conditions for deadlock",
+    "text": "Conditions for deadlock\n\nFour necessary conditions (simultaneous):\n\nMutual exclusion: At least one resource can only be held by one process at a time; this can result in other processes waiting for that resources\nHold and wait: A process must be holding at least one resource while waiting for other resources (held by other processes)\nNo preemption: Resources can only be released voluntarily by a process; Resources cannot be revoked\nCircular wait: A set of \\(n\\) waiting process \\({P_0, ..., P_n}\\) such that \\(P_i\\) is waiting for resources held by \\(P_{i+1 \\bmod{n}}\\)\n\nAll must be met, and some imply others: e.g. Circular wait implies hold and wait."
+  },
+  {
+    "objectID": "day8.html#deadlock-conditions",
+    "href": "day8.html#deadlock-conditions",
+    "title": "CSC 453",
+    "section": "Deadlock conditions",
+    "text": "Deadlock conditions\n\nEach condition relates to a policy that may or may not be implemented\n\nQ: Can a resource be assigned to more than one process?\nQ: Can a process request multiple resources? Over what period of time?\nQ: Can resources be preempted, and how?"
+  },
+  {
+    "objectID": "day8.html#deadlock-modeling",
+    "href": "day8.html#deadlock-modeling",
+    "title": "CSC 453",
+    "section": "Deadlock modeling",
+    "text": "Deadlock modeling\n\n\n\nResource Allocation Graphs: A directed graph, where process and resources are nodes (sometimes circles and squares respectively), and edges are resource allocations & requests\nGraph for\nThread 1:                   Thread 2:\npthread_mutex_lock(L1);     pthread_mutex_lock(L2);\npthread_mutex_lock(L2);     pthread_mutex_lock(L1);\n\n\n\n\n\n\n\nCycles in a graph indicate deadlock\n\nWhen resources have only one instance: A cycle is both necessary and sufficient for deadlock\nIf there are multiple instances: A cycle is necessary but not sufficient for a deadlock"
+  },
+  {
+    "objectID": "day8.html#is-this-deadlocked",
+    "href": "day8.html#is-this-deadlocked",
+    "title": "CSC 453",
+    "section": "Is this deadlocked?",
+    "text": "Is this deadlocked?\n\nThere is a cycle\nBut no hold and wait"
+  },
+  {
+    "objectID": "day8.html#section-1",
+    "href": "day8.html#section-1",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day8.html#questions-to-consider-2",
+    "href": "day8.html#questions-to-consider-2",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat are the approaches to handling deadlock? How practical is each? How do they differ in approach?\nHow does deadlock avoidance differ from deadlock prevention? What techniques do we implement for deadlock avoidance?\nWhat are the trade-offs between detecting/recovering from deadlock versus preventing or avoiding it, and when is detection practical?"
+  },
+  {
+    "objectID": "day8.html#how-should-the-os-handle-deadlocks",
+    "href": "day8.html#how-should-the-os-handle-deadlocks",
+    "title": "CSC 453",
+    "section": "How should the OS handle deadlocks?",
+    "text": "How should the OS handle deadlocks?\n\nOS can prevent deadlock: ensure deadlocks can never occur (by preventing one of the deadlock requirements from occurring)\nOS can avoid deadlock: like prevention, but given more information about a processes resource needs\nOS can detect deadlock: allow system to deadlock, detect and recover\nOS can do nothing, and let applications handle it\n\nOstrich Algorithm: head in sand; wait"
+  },
+  {
+    "objectID": "day8.html#deadlock-prevention",
+    "href": "day8.html#deadlock-prevention",
+    "title": "CSC 453",
+    "section": "Deadlock prevention",
+    "text": "Deadlock prevention\n\nRemember, we just have to break one of these to prevent deadlock\n\nMutual exclusion\nHold and wait\nNo preemption\nCircular wait\n\n\n\nAny ideas?\n\n\nExample Strategies: - Dynamic Resource Allocation: Implement algorithms that dynamically adjust resource allocation based on current system state and process priorities. - Timeout Mechanism: Introduce timeouts for resource requests, forcing processes to release resources if they cannot acquire all necessary resources within a certain timeframe. - Resource Hierarchies: Establish a hierarchy for resource allocation, ensuring that processes request resources in a predefined order to avoid circular wait conditions. - Predictive Analysis: Use machine learning to predict potential deadlock scenarios based on historical data and proactively adjust resource allocation.\nFollow-Up Questions: - How does your strategy address mutual exclusion? - Can your strategy be implemented in real-world systems? If so, how? - What challenges might arise when implementing your strategy?"
+  },
+  {
+    "objectID": "day8.html#attacking-mutual-exclusion",
+    "href": "day8.html#attacking-mutual-exclusion",
+    "title": "CSC 453",
+    "section": "Attacking mutual exclusion",
+    "text": "Attacking mutual exclusion\n\nNo one resource can only be held by one process at a time; while some resources are preemptable (like memory, through swapping) preventing mutual exclusion is fundamentally difficult as so many resource are non-sharable: printers, files, disks, etc.\n\nWe can create a monitor for non-preemptable resources (e.g., print spooler, disk drive buffer)"
+  },
+  {
+    "objectID": "day8.html#attacking-hold-and-wait",
+    "href": "day8.html#attacking-hold-and-wait",
+    "title": "CSC 453",
+    "section": "Attacking hold and wait",
+    "text": "Attacking hold and wait\n\nWhen a process requests a resource, it cannot be holding any other resources\nA process must request all of its resources at one time\nExample, treat group of lock acquisitions like a critical section and surround with a mutex\npthread_mutex_lock(global_lock);\npthread_mutex_lock(L1);\npthread_mutex_lock(L2);\n...\npthread_mutex_unlock(global_lock);\nSee any downsides?\n\nMust know all needed locks a priori\nWill likely decrease concurrency"
+  },
+  {
+    "objectID": "day8.html#attacking-no-preemption",
+    "href": "day8.html#attacking-no-preemption",
+    "title": "CSC 453",
+    "section": "Attacking no preemption",
+    "text": "Attacking no preemption\n\nIf a process is holding some resources and requests another that cannot be immediately allocated, then all resources held are released\nProcess is restarted only when it can regain its old resources plus the new\nOr, if a process requests a resource that cannot be immediately allocated, then all resources held are preempted and added to the list of available resources\nDownsides?\n\nNot all resources are preempt-able\nStarvation is possible"
+  },
+  {
+    "objectID": "day8.html#attacking-circular-wait",
+    "href": "day8.html#attacking-circular-wait",
+    "title": "CSC 453",
+    "section": "Attacking circular wait",
+    "text": "Attacking circular wait\n\nHow could you prevent by focusing on the circular wait requirement?\nImpose a total ordering of all resource types\n\nFor example, resource types R1, R2, …, Rn have ordering R1 &lt; R2 &lt; … &lt; Rn\nA process that needs multiple resources must request them in increasing order of enumeration\n\nDownsides?\n\nMay be difficult to impose a meaningful ordering\nMay lead to reduced concurrency"
+  },
+  {
+    "objectID": "day8.html#deadlock-prevention-summary",
+    "href": "day8.html#deadlock-prevention-summary",
+    "title": "CSC 453",
+    "section": "Deadlock prevention summary",
+    "text": "Deadlock prevention summary\n\nWhich approach is best?\n\nAttacking mutual exclusion is generally not feasible\nAttacking hold and wait is wasteful and requires prescience\nAttacking no preemption is difficult due to non-preemptable resources\nAttacking circular wait is practical but may reduce concurrency - often the best choice and most used"
+  },
+  {
+    "objectID": "day8.html#section-2",
+    "href": "day8.html#section-2",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day8.html#deadlock-avoidance",
+    "href": "day8.html#deadlock-avoidance",
+    "title": "CSC 453",
+    "section": "Deadlock avoidance",
+    "text": "Deadlock avoidance\n\nAll of the prevention techniques can be heavy-handed, reducing concurrency and overall system throughput\nWhat if we had more information about process resource needs before allocation?\n\nCould we make smarter decisions about resource allocation?\n\nThis is the idea behind deadlock avoidance"
+  },
+  {
+    "objectID": "day8.html#avoidance-via-resource-allocation-graph",
+    "href": "day8.html#avoidance-via-resource-allocation-graph",
+    "title": "CSC 453",
+    "section": "Avoidance via resource-allocation graph",
+    "text": "Avoidance via resource-allocation graph\n\n\n\nIntroduce the idea of a claim edge (dashed line) from a process to a resource\n\nIndicates that the process may request that resource in the future\n\nThe system can maintain this graph, and only grant resources that will not create a cycle\nAny downsides / limitations?\n\nOverhead of maintaining the graph and checking for cycles\nOnly applicable to single instance resources"
+  },
+  {
+    "objectID": "day8.html#a-note-on-dijkstras-bankers-algorithm",
+    "href": "day8.html#a-note-on-dijkstras-bankers-algorithm",
+    "title": "CSC 453",
+    "section": "A note on Dijkstra’s Banker’s algorithm",
+    "text": "A note on Dijkstra’s Banker’s algorithm\n\nMost OS textbooks discuss Dijkstra’s Banker’s algorithm as a deadlock avoidance technique\nEach process must declare the maximum number of resources it may need\nWhen a process requests a resource, the system must determine if granting the request will leave the system in a safe state\n\nA safe state is one where there exists a sequence of all processes such that each can obtain its maximum resources with the currently available resources plus those held by all preceding processes in the sequence\n\nIf granting the request leads to an unsafe state, the process must wait\nNot often used in practice due to overhead and requirement for prescience"
+  },
+  {
+    "objectID": "day8.html#deadlock-avoidance-summary",
+    "href": "day8.html#deadlock-avoidance-summary",
+    "title": "CSC 453",
+    "section": "Deadlock avoidance summary",
+    "text": "Deadlock avoidance summary\n\nDo you think any of the avoidance methods are used in general purpose OSes? Why? Why not?\nResource-allocation graph with claim edges is sometimes used for specific resource types\n\ne.g., embedded systems with limited resources where you can predict maximum needs and the graph overhead is manageable\n\nBanker’s algorithm is generally not used due to its overhead and requirements"
+  },
+  {
+    "objectID": "day8.html#detecting-and-recovering-from-deadlock",
+    "href": "day8.html#detecting-and-recovering-from-deadlock",
+    "title": "CSC 453",
+    "section": "Detecting and recovering from deadlock",
+    "text": "Detecting and recovering from deadlock\n\nAllow deadlocks to occur, then detect and recover\nIn some cases, recovery is pretty simple. If your machine froze once per year (maybe it does?) what would you do?\n\nReboot\n\nWhat scenarios do you think complex detection and recovery would make sense?\n\nSystems with high availability requirements where manual intervention is costly or impractical\n\ntelecommunications systems, financial transaction systems, healthcare systems\ncritical infrastructure systems"
+  },
+  {
+    "objectID": "day8.html#detection",
+    "href": "day8.html#detection",
+    "title": "CSC 453",
+    "section": "Detection",
+    "text": "Detection\n\nUse a wait-for graph: a simplified resource-allocation graph that removes resource nodes\n\nAn edge from process \\(P_i\\) to \\(P_j\\) indicates that \\(P_i\\) is waiting for a resource held by \\(P_j\\)\nA cycle in this graph indicates a deadlock\n\\(O(n^2)\\) algorithm to search for cycles (beyond the cost of maintaining the graph itself)\nOnly applies to single instance resources"
+  },
+  {
+    "objectID": "day8.html#detection-contd",
+    "href": "day8.html#detection-contd",
+    "title": "CSC 453",
+    "section": "Detection (cont’d)",
+    "text": "Detection (cont’d)"
+  },
+  {
+    "objectID": "day8.html#detection-contd-1",
+    "href": "day8.html#detection-contd-1",
+    "title": "CSC 453",
+    "section": "Detection (cont’d)",
+    "text": "Detection (cont’d)\n\nFor multiple instance resources, we can use an algorithm similar to the Banker’s algorithm to detect deadlock\nQuestion: How often should we run the detection algorithm?\n\nToo often: wasteful overhead\nNot often enough: long delays before recovery\nWhat if we run it when a process requests a resource?\n\nCould allow us to assign blame for deadlock to the requesting process\n\nHeuristically (CPU utilization, etc.)\n\nLess overhead, but harder to assign blame"
+  },
+  {
+    "objectID": "day8.html#recovery-options",
+    "href": "day8.html#recovery-options",
+    "title": "CSC 453",
+    "section": "Recovery options",
+    "text": "Recovery options\n\nProcess termination\n\nAbort all deadlocked processes (brute force)\nAbort one process at a time until deadlock is resolved\n\nHow to choose which process to abort?\n\nPriority, time running, resources used, etc.\n\n\n\nResource preemption\n\nTemporarily take resources away from some processes and give to others until deadlock is resolved\nHighly dependent on the resource type\nRollback problem - processes may need to be rolled back to a safe state before resources can be reallocated\nStarvation problem - same victims may be chosen repeatedly"
+  },
+  {
+    "objectID": "day8.html#handling-deadlocks-summary",
+    "href": "day8.html#handling-deadlocks-summary",
+    "title": "CSC 453",
+    "section": "Handling deadlocks summary",
+    "text": "Handling deadlocks summary\n\nWhen to use which technique?\n\nPrevention: when you can afford to limit concurrency and throughput for simplicity\nAvoidance: when you have good information about process resource needs and can afford the overhead\nDetection and recovery: when deadlocks are rare and the overhead of prevention/avoidance is unjustified\nDo nothing: when deadlocks are extremely rare or tolerable and can be handled at the application level"
+  },
+  {
+    "objectID": "day8.html#section-3",
+    "href": "day8.html#section-3",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day3.html#admin",
+    "href": "day3.html#admin",
+    "title": "CSC 453",
+    "section": "Admin",
+    "text": "Admin\n\nLab 1 due tonight\n\nWindows users: there are some settings to make the VM work if you missed lab\n\nProgramming assignment 1 due next Monday"
+  },
+  {
+    "objectID": "day3.html#questions-to-consider",
+    "href": "day3.html#questions-to-consider",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nHow do we ensure that a user process doesn’t harm others?\nHow do system calls work? How do they related to wrapper libraries like glibc?"
+  },
+  {
+    "objectID": "day3.html#dual-mode-operation",
+    "href": "day3.html#dual-mode-operation",
+    "title": "CSC 453",
+    "section": "Dual-mode operation",
+    "text": "Dual-mode operation\n\nDual-mode operation allows OS to protect itself and components\n\nUser mode and kernel mode\n\nMode bit provided by hardware\n\nProvides ability to distinguish when system is running user code or kernel code.\nWhen a user is running → mode bit is “user”\nWhen kernel code is executing → mode bit is “kernel”\n\nSystem call changes mode to kernel, return from call resets it to user\nSome instructions are only executable in kernel mode"
+  },
+  {
+    "objectID": "day3.html#system-calls",
+    "href": "day3.html#system-calls",
+    "title": "CSC 453",
+    "section": "System calls",
+    "text": "System calls\n\nThe OS offers a number of services. How do we (applications) interface with them?\n\nWe don’t want to deal with the details, just the abstraction\nThe OS has ultimate control over these operations\n\nSystem calls are the “language” of communication with the OS\nStandards\n\nWin32 (MS)\nPOSIX (nearly all Unix-based systems)\nJava API for the JVM"
+  },
+  {
+    "objectID": "day3.html#system-calls-contd",
+    "href": "day3.html#system-calls-contd",
+    "title": "CSC 453",
+    "section": "System calls (cont’d)",
+    "text": "System calls (cont’d)\n\nLike a function call, we push arguments onto the stack, then we call into the library that provides the system call\nEach system call has a special number, placed into a register\nExecutes a TRAP instruction (switch to kernel mode)\nA logical separation of memory space\nKernel’s system call handler is invoked, once done (but may block) may be returned to the process"
+  },
+  {
+    "objectID": "day3.html#system-calls-contd-1",
+    "href": "day3.html#system-calls-contd-1",
+    "title": "CSC 453",
+    "section": "System calls (cont’d)",
+    "text": "System calls (cont’d)\n\nTable defined in the kernel: https://github.com/torvalds/linux/blob/master/arch/x86/entry/ syscalls/syscall_32.tbl\n\nNote that system call tables can differ between architectures\n\nYou can run using the table values themselves using the syscall() wrapper\n\nQ: why does syscall() exist?\nIf you’re interested… There are debates https://lwn.net/Articles/771441/"
+  },
+  {
+    "objectID": "day3.html#section",
+    "href": "day3.html#section",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day3.html#questions-to-consider-1",
+    "href": "day3.html#questions-to-consider-1",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat do processes contain?\nHow does the OS run multiple processes at the same time?\nHow are processes laid out in memory?\nHow does the OS store information about each process?"
+  },
+  {
+    "objectID": "day3.html#processes",
+    "href": "day3.html#processes",
+    "title": "CSC 453",
+    "section": "Processes",
+    "text": "Processes\n\nMost fundamental OS abstraction\n\nProcesses organize information about other abstractions and represent a single thing the computer is “doing”\n\nWhen you run an executable program (passive), the OS creates a process == a running program (active)\nOne program can be multiple processes"
+  },
+  {
+    "objectID": "day3.html#process-organization",
+    "href": "day3.html#process-organization",
+    "title": "CSC 453",
+    "section": "Process organization",
+    "text": "Process organization\n\n\n\nUnlike threads, address spaces and files, processes are not tied to a hardware component. Instead, they contain other abstractions\nProcesses contain:\n\none or more threads,\nan address space, and\nzero or more open file handles representing files"
+  },
+  {
+    "objectID": "day3.html#multiprogramming",
+    "href": "day3.html#multiprogramming",
+    "title": "CSC 453",
+    "section": "Multiprogramming",
+    "text": "Multiprogramming\n\nProcesses are the core abstraction that allows for multiprogramming: the illusion of concurrency\nOS timeshares CPU across multiple processes: virtualizes CPU\nOS has a CPU scheduler that picks one of the many active processes to execute on a CPU\nPolicy:\n\nwhich process to run\n\nMechanism:\n\nhow to context switch between processes"
+  },
+  {
+    "objectID": "day3.html#processs-view-of-the-world",
+    "href": "day3.html#processs-view-of-the-world",
+    "title": "CSC 453",
+    "section": "Process’s view of the world",
+    "text": "Process’s view of the world\n\n\n\nOwn memory with consistent addressing (divorced from physical addressing)\nIt has exclusivity over the CPU: It doesn’t have to worry about scheduling\nConversely, it doesn’t know when it will be scheduled, so real time events require special handling\nHas some identity: pid, gid, uid\nHas a set of services available to it via the OS\n\nData (via file system)\nCommunication (sockets, IPC)\nMore resources (e.g., memory)"
+  },
+  {
+    "objectID": "day3.html#process-memory-layout",
+    "href": "day3.html#process-memory-layout",
+    "title": "CSC 453",
+    "section": "Process memory layout",
+    "text": "Process memory layout\n\n\n\nText segment: machine instructions; shareable between identical processes; read-only\nData segment: for initialized data; e.g., int count = 99;\nBSS (block started by symbol) segment: uninitialized data; e.g., int sum[10];\nHeap: dynamic memory allocation\nStack: initial arguments and environment; stack frames"
+  },
+  {
+    "objectID": "day3.html#oss-view-of-the-process-world",
+    "href": "day3.html#oss-view-of-the-process-world",
+    "title": "CSC 453",
+    "section": "OS’s view of the (process) world",
+    "text": "OS’s view of the (process) world\n\n\n\nData for each process is held in a data structure known as a Process Control Block\nPartitioned memory:\n\ndedicated & shared address space\n\nperhaps non-contiguous\n\nProcess table holds PCBs"
+  },
+  {
+    "objectID": "day3.html#section-1",
+    "href": "day3.html#section-1",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day3.html#questions-to-consider-2",
+    "href": "day3.html#questions-to-consider-2",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat are the different process states and what causes transitions?\nWhat is a context switch?\nWhat are the two general categories of processes and how do they differ?"
+  },
+  {
+    "objectID": "day3.html#process-states",
+    "href": "day3.html#process-states",
+    "title": "CSC 453",
+    "section": "Process states",
+    "text": "Process states\n\nAs a process executes, it changes state\n\nNew: The process is being created\nRunning: Instructions are being executed\nWaiting: The process is waiting for some event (typically I/O or signal handling) to occur\nReady: The process is waiting to be assigned to a processor\nTerminated: The process has finished execution"
+  },
+  {
+    "objectID": "day3.html#process-state-transitions",
+    "href": "day3.html#process-state-transitions",
+    "title": "CSC 453",
+    "section": "Process state transitions",
+    "text": "Process state transitions"
+  },
+  {
+    "objectID": "day3.html#process-state-transitions-contd",
+    "href": "day3.html#process-state-transitions-contd",
+    "title": "CSC 453",
+    "section": "Process state transitions (cont’d)",
+    "text": "Process state transitions (cont’d)\n\n\n\nRunning process can move from running to terminated (exit or killed), moved to ready (time slice up), or blocked (signaled to wait, I/O)\nWhich state transitions could happen with these expensive actions?\n\nCompute a new RSA key?\nFind the largest value in a 1TB of data?\n\n\n\n\n\n\n\n\n\nRunning to Waiting: This transition occurs when a process cannot continue executing until a specific event occurs. Here are some examples:\n\nI/O Operations:\n\nExample: A process needs to read data from a disk. It issues an I/O request and then moves to the Waiting state until the data is read and available.\nReal-World Scenario: A web server process waiting for data to be read from a database.\n\nResource Availability:\n\nExample: A process requires a resource (like a printer) that is currently in use by another process. It moves to the Waiting state until the resource becomes available.\nReal-World Scenario: A document editing application waiting for access to a shared printer.\n\nInter-Process Communication (IPC):\n\nExample: A process is waiting for a message from another process. It moves to the Waiting state until the message is received.\nReal-World Scenario: A chat application waiting for a message from a server.\n\nSynchronization Primitives:\n\nExample: A process is waiting for a lock or semaphore to be released by another process. It moves to the Waiting state until the lock is available.\nReal-World Scenario: A banking application waiting for a transaction lock to be released.\n\n\nRunning to Ready: This transition occurs when a process is preempted by the scheduler, but it is still ready to run as soon as it gets CPU time again. Here are some examples:\n\nTime Slice Expiration:\n\nExample: A process has used up its allocated time slice. The scheduler preempts it and moves it to the Ready state, allowing another process to run.\nReal-World Scenario: A video streaming application being preempted to allow a background update process to run.\n\nHigher Priority Process:\n\nExample: A higher priority process becomes ready to run. The scheduler preempts the current process and moves it to the Ready state.\nReal-World Scenario: An emergency alert system preempting a running media player application.\n\nVoluntary Yield:\n\nExample: A process voluntarily yields the CPU, indicating it can be preempted. The scheduler moves it to the Ready state.\nReal-World Scenario: A background data synchronization process yielding the CPU to allow a user-initiated task to run."
+  },
+  {
+    "objectID": "day3.html#process-scheduling",
+    "href": "day3.html#process-scheduling",
+    "title": "CSC 453",
+    "section": "Process scheduling",
+    "text": "Process scheduling\n\nOS process scheduler selects among available processes for next execution on CPU core\nGoal?\n\nMaximize CPU use, quickly switch processes onto CPU core\n\nMaintains scheduling queues of processes\n\nReady queue: set of all processes residing in main memory, ready and waiting to execute\nWait queues: set of processes waiting for an event (i.e., I/O)\n\nProcesses migrate among the various queues over their lifetime"
+  },
+  {
+    "objectID": "day3.html#context-switching",
+    "href": "day3.html#context-switching",
+    "title": "CSC 453",
+    "section": "Context switching",
+    "text": "Context switching\n\nWhen CPU switches to another process, the system must save the state of the old process and load the saved state for the new process via a context switch\nContext of a process represented in the PCB\nContext-switch time is pure overhead; the system does no useful work while switching\n\nThe more complex the OS and the PCB → the longer the context switch\n\nTime dependent on hardware support\n\nSome hardware provides multiple sets of registers per CPU → multiple contexts loaded at once"
+  },
+  {
+    "objectID": "day3.html#context-switching-overhead",
+    "href": "day3.html#context-switching-overhead",
+    "title": "CSC 453",
+    "section": "Context switching overhead",
+    "text": "Context switching overhead\n\nOn the order of milliseconds\nIf not done intelligently, you can spend more time context-switching than actual processing\nQuestion: Why shouldn’t processes control context switching?\n\n\n\nThey could refuse to give up CPU (processes are greedy)\nThey’re intentionally isolated, and don’t have enough information about other processes\nIt would cause too much complication (every process would have to implement its own context switch code)"
+  },
+  {
+    "objectID": "day3.html#scheduling-basics",
+    "href": "day3.html#scheduling-basics",
+    "title": "CSC 453",
+    "section": "Scheduling basics",
+    "text": "Scheduling basics\n\nScheduler usually makes the transition decisions; hides the details from the process/user\nProcesses often characterized as one of two types by what state they spend most of their time in\n\nI/O bound: work is dependent on I/O; e.g., browser, db, media streaming\nCPU bound: work is dependent on CPU; e.g., scientific apps, cryptography\nWhy does this matter?\n\nUnderstanding which your process is allows for optimization\n\nCPU-bound? Faster CPU, parallelize.\nI/O? Faster I/O devices, use async\n\n\n\nScheduler must balance CPU- & I/O-bound processes\n\nReminder: the goal is to maximize CPU utilization"
+  },
+  {
+    "objectID": "day3.html#aside-multiprocessing-in-mobile",
+    "href": "day3.html#aside-multiprocessing-in-mobile",
+    "title": "CSC 453",
+    "section": "Aside: multiprocessing in mobile",
+    "text": "Aside: multiprocessing in mobile\n\nSome mobile systems (e.g., early versions of iOS) allow only one process to run, others suspended\nDue to screen real estate, user interface limits iOS provides:\n\nSingle foreground process controlled via user interface\nMultiple background processes in memory, running, but not on the display, and with limits\n\nLimits include single, short task, receiving notification of events, specific long-running tasks like audio playback\n\n\nAndroid runs foreground and background, with fewer limits\n\nBackground process uses a service to perform tasks\nService can keep running even if background process is suspended\nService has no user interface, small memory use"
+  },
+  {
+    "objectID": "day3.html#section-2",
+    "href": "day3.html#section-2",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
     "objectID": "day6.html#admin",
     "href": "day6.html#admin",
     "title": "CSC 453",
@@ -954,181 +1437,6 @@
   {
     "objectID": "day6.html#section-2",
     "href": "day6.html#section-2",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
-    "objectID": "day3.html#admin",
-    "href": "day3.html#admin",
-    "title": "CSC 453",
-    "section": "Admin",
-    "text": "Admin\n\nLab 1 due tonight\n\nWindows users: there are some settings to make the VM work if you missed lab\n\nProgramming assignment 1 due next Monday"
-  },
-  {
-    "objectID": "day3.html#questions-to-consider",
-    "href": "day3.html#questions-to-consider",
-    "title": "CSC 453",
-    "section": "Questions to consider",
-    "text": "Questions to consider\n\nHow do we ensure that a user process doesn’t harm others?\nHow do system calls work? How do they related to wrapper libraries like glibc?"
-  },
-  {
-    "objectID": "day3.html#dual-mode-operation",
-    "href": "day3.html#dual-mode-operation",
-    "title": "CSC 453",
-    "section": "Dual-mode operation",
-    "text": "Dual-mode operation\n\nDual-mode operation allows OS to protect itself and components\n\nUser mode and kernel mode\n\nMode bit provided by hardware\n\nProvides ability to distinguish when system is running user code or kernel code.\nWhen a user is running → mode bit is “user”\nWhen kernel code is executing → mode bit is “kernel”\n\nSystem call changes mode to kernel, return from call resets it to user\nSome instructions are only executable in kernel mode"
-  },
-  {
-    "objectID": "day3.html#system-calls",
-    "href": "day3.html#system-calls",
-    "title": "CSC 453",
-    "section": "System calls",
-    "text": "System calls\n\nThe OS offers a number of services. How do we (applications) interface with them?\n\nWe don’t want to deal with the details, just the abstraction\nThe OS has ultimate control over these operations\n\nSystem calls are the “language” of communication with the OS\nStandards\n\nWin32 (MS)\nPOSIX (nearly all Unix-based systems)\nJava API for the JVM"
-  },
-  {
-    "objectID": "day3.html#system-calls-contd",
-    "href": "day3.html#system-calls-contd",
-    "title": "CSC 453",
-    "section": "System calls (cont’d)",
-    "text": "System calls (cont’d)\n\nLike a function call, we push arguments onto the stack, then we call into the library that provides the system call\nEach system call has a special number, placed into a register\nExecutes a TRAP instruction (switch to kernel mode)\nA logical separation of memory space\nKernel’s system call handler is invoked, once done (but may block) may be returned to the process"
-  },
-  {
-    "objectID": "day3.html#system-calls-contd-1",
-    "href": "day3.html#system-calls-contd-1",
-    "title": "CSC 453",
-    "section": "System calls (cont’d)",
-    "text": "System calls (cont’d)\n\nTable defined in the kernel: https://github.com/torvalds/linux/blob/master/arch/x86/entry/ syscalls/syscall_32.tbl\n\nNote that system call tables can differ between architectures\n\nYou can run using the table values themselves using the syscall() wrapper\n\nQ: why does syscall() exist?\nIf you’re interested… There are debates https://lwn.net/Articles/771441/"
-  },
-  {
-    "objectID": "day3.html#section",
-    "href": "day3.html#section",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
-    "objectID": "day3.html#questions-to-consider-1",
-    "href": "day3.html#questions-to-consider-1",
-    "title": "CSC 453",
-    "section": "Questions to consider",
-    "text": "Questions to consider\n\nWhat do processes contain?\nHow does the OS run multiple processes at the same time?\nHow are processes laid out in memory?\nHow does the OS store information about each process?"
-  },
-  {
-    "objectID": "day3.html#processes",
-    "href": "day3.html#processes",
-    "title": "CSC 453",
-    "section": "Processes",
-    "text": "Processes\n\nMost fundamental OS abstraction\n\nProcesses organize information about other abstractions and represent a single thing the computer is “doing”\n\nWhen you run an executable program (passive), the OS creates a process == a running program (active)\nOne program can be multiple processes"
-  },
-  {
-    "objectID": "day3.html#process-organization",
-    "href": "day3.html#process-organization",
-    "title": "CSC 453",
-    "section": "Process organization",
-    "text": "Process organization\n\n\n\nUnlike threads, address spaces and files, processes are not tied to a hardware component. Instead, they contain other abstractions\nProcesses contain:\n\none or more threads,\nan address space, and\nzero or more open file handles representing files"
-  },
-  {
-    "objectID": "day3.html#multiprogramming",
-    "href": "day3.html#multiprogramming",
-    "title": "CSC 453",
-    "section": "Multiprogramming",
-    "text": "Multiprogramming\n\nProcesses are the core abstraction that allows for multiprogramming: the illusion of concurrency\nOS timeshares CPU across multiple processes: virtualizes CPU\nOS has a CPU scheduler that picks one of the many active processes to execute on a CPU\nPolicy:\n\nwhich process to run\n\nMechanism:\n\nhow to context switch between processes"
-  },
-  {
-    "objectID": "day3.html#processs-view-of-the-world",
-    "href": "day3.html#processs-view-of-the-world",
-    "title": "CSC 453",
-    "section": "Process’s view of the world",
-    "text": "Process’s view of the world\n\n\n\nOwn memory with consistent addressing (divorced from physical addressing)\nIt has exclusivity over the CPU: It doesn’t have to worry about scheduling\nConversely, it doesn’t know when it will be scheduled, so real time events require special handling\nHas some identity: pid, gid, uid\nHas a set of services available to it via the OS\n\nData (via file system)\nCommunication (sockets, IPC)\nMore resources (e.g., memory)"
-  },
-  {
-    "objectID": "day3.html#process-memory-layout",
-    "href": "day3.html#process-memory-layout",
-    "title": "CSC 453",
-    "section": "Process memory layout",
-    "text": "Process memory layout\n\n\n\nText segment: machine instructions; shareable between identical processes; read-only\nData segment: for initialized data; e.g., int count = 99;\nBSS (block started by symbol) segment: uninitialized data; e.g., int sum[10];\nHeap: dynamic memory allocation\nStack: initial arguments and environment; stack frames"
-  },
-  {
-    "objectID": "day3.html#oss-view-of-the-process-world",
-    "href": "day3.html#oss-view-of-the-process-world",
-    "title": "CSC 453",
-    "section": "OS’s view of the (process) world",
-    "text": "OS’s view of the (process) world\n\n\n\nData for each process is held in a data structure known as a Process Control Block\nPartitioned memory:\n\ndedicated & shared address space\n\nperhaps non-contiguous\n\nProcess table holds PCBs"
-  },
-  {
-    "objectID": "day3.html#section-1",
-    "href": "day3.html#section-1",
-    "title": "CSC 453",
-    "section": "",
-    "text": "What isn’t clear?\nComments? Thoughts?"
-  },
-  {
-    "objectID": "day3.html#questions-to-consider-2",
-    "href": "day3.html#questions-to-consider-2",
-    "title": "CSC 453",
-    "section": "Questions to consider",
-    "text": "Questions to consider\n\nWhat are the different process states and what causes transitions?\nWhat is a context switch?\nWhat are the two general categories of processes and how do they differ?"
-  },
-  {
-    "objectID": "day3.html#process-states",
-    "href": "day3.html#process-states",
-    "title": "CSC 453",
-    "section": "Process states",
-    "text": "Process states\n\nAs a process executes, it changes state\n\nNew: The process is being created\nRunning: Instructions are being executed\nWaiting: The process is waiting for some event (typically I/O or signal handling) to occur\nReady: The process is waiting to be assigned to a processor\nTerminated: The process has finished execution"
-  },
-  {
-    "objectID": "day3.html#process-state-transitions",
-    "href": "day3.html#process-state-transitions",
-    "title": "CSC 453",
-    "section": "Process state transitions",
-    "text": "Process state transitions"
-  },
-  {
-    "objectID": "day3.html#process-state-transitions-contd",
-    "href": "day3.html#process-state-transitions-contd",
-    "title": "CSC 453",
-    "section": "Process state transitions (cont’d)",
-    "text": "Process state transitions (cont’d)\n\n\n\nRunning process can move from running to terminated (exit or killed), moved to ready (time slice up), or blocked (signaled to wait, I/O)\nWhich state transitions could happen with these expensive actions?\n\nCompute a new RSA key?\nFind the largest value in a 1TB of data?\n\n\n\n\n\n\n\n\n\nRunning to Waiting: This transition occurs when a process cannot continue executing until a specific event occurs. Here are some examples:\n\nI/O Operations:\n\nExample: A process needs to read data from a disk. It issues an I/O request and then moves to the Waiting state until the data is read and available.\nReal-World Scenario: A web server process waiting for data to be read from a database.\n\nResource Availability:\n\nExample: A process requires a resource (like a printer) that is currently in use by another process. It moves to the Waiting state until the resource becomes available.\nReal-World Scenario: A document editing application waiting for access to a shared printer.\n\nInter-Process Communication (IPC):\n\nExample: A process is waiting for a message from another process. It moves to the Waiting state until the message is received.\nReal-World Scenario: A chat application waiting for a message from a server.\n\nSynchronization Primitives:\n\nExample: A process is waiting for a lock or semaphore to be released by another process. It moves to the Waiting state until the lock is available.\nReal-World Scenario: A banking application waiting for a transaction lock to be released.\n\n\nRunning to Ready: This transition occurs when a process is preempted by the scheduler, but it is still ready to run as soon as it gets CPU time again. Here are some examples:\n\nTime Slice Expiration:\n\nExample: A process has used up its allocated time slice. The scheduler preempts it and moves it to the Ready state, allowing another process to run.\nReal-World Scenario: A video streaming application being preempted to allow a background update process to run.\n\nHigher Priority Process:\n\nExample: A higher priority process becomes ready to run. The scheduler preempts the current process and moves it to the Ready state.\nReal-World Scenario: An emergency alert system preempting a running media player application.\n\nVoluntary Yield:\n\nExample: A process voluntarily yields the CPU, indicating it can be preempted. The scheduler moves it to the Ready state.\nReal-World Scenario: A background data synchronization process yielding the CPU to allow a user-initiated task to run."
-  },
-  {
-    "objectID": "day3.html#process-scheduling",
-    "href": "day3.html#process-scheduling",
-    "title": "CSC 453",
-    "section": "Process scheduling",
-    "text": "Process scheduling\n\nOS process scheduler selects among available processes for next execution on CPU core\nGoal?\n\nMaximize CPU use, quickly switch processes onto CPU core\n\nMaintains scheduling queues of processes\n\nReady queue: set of all processes residing in main memory, ready and waiting to execute\nWait queues: set of processes waiting for an event (i.e., I/O)\n\nProcesses migrate among the various queues over their lifetime"
-  },
-  {
-    "objectID": "day3.html#context-switching",
-    "href": "day3.html#context-switching",
-    "title": "CSC 453",
-    "section": "Context switching",
-    "text": "Context switching\n\nWhen CPU switches to another process, the system must save the state of the old process and load the saved state for the new process via a context switch\nContext of a process represented in the PCB\nContext-switch time is pure overhead; the system does no useful work while switching\n\nThe more complex the OS and the PCB → the longer the context switch\n\nTime dependent on hardware support\n\nSome hardware provides multiple sets of registers per CPU → multiple contexts loaded at once"
-  },
-  {
-    "objectID": "day3.html#context-switching-overhead",
-    "href": "day3.html#context-switching-overhead",
-    "title": "CSC 453",
-    "section": "Context switching overhead",
-    "text": "Context switching overhead\n\nOn the order of milliseconds\nIf not done intelligently, you can spend more time context-switching than actual processing\nQuestion: Why shouldn’t processes control context switching?\n\n\n\nThey could refuse to give up CPU (processes are greedy)\nThey’re intentionally isolated, and don’t have enough information about other processes\nIt would cause too much complication (every process would have to implement its own context switch code)"
-  },
-  {
-    "objectID": "day3.html#scheduling-basics",
-    "href": "day3.html#scheduling-basics",
-    "title": "CSC 453",
-    "section": "Scheduling basics",
-    "text": "Scheduling basics\n\nScheduler usually makes the transition decisions; hides the details from the process/user\nProcesses often characterized as one of two types by what state they spend most of their time in\n\nI/O bound: work is dependent on I/O; e.g., browser, db, media streaming\nCPU bound: work is dependent on CPU; e.g., scientific apps, cryptography\nWhy does this matter?\n\nUnderstanding which your process is allows for optimization\n\nCPU-bound? Faster CPU, parallelize.\nI/O? Faster I/O devices, use async\n\n\n\nScheduler must balance CPU- & I/O-bound processes\n\nReminder: the goal is to maximize CPU utilization"
-  },
-  {
-    "objectID": "day3.html#aside-multiprocessing-in-mobile",
-    "href": "day3.html#aside-multiprocessing-in-mobile",
-    "title": "CSC 453",
-    "section": "Aside: multiprocessing in mobile",
-    "text": "Aside: multiprocessing in mobile\n\nSome mobile systems (e.g., early versions of iOS) allow only one process to run, others suspended\nDue to screen real estate, user interface limits iOS provides:\n\nSingle foreground process controlled via user interface\nMultiple background processes in memory, running, but not on the display, and with limits\n\nLimits include single, short task, receiving notification of events, specific long-running tasks like audio playback\n\n\nAndroid runs foreground and background, with fewer limits\n\nBackground process uses a service to perform tasks\nService can keep running even if background process is suspended\nService has no user interface, small memory use"
-  },
-  {
-    "objectID": "day3.html#section-2",
-    "href": "day3.html#section-2",
     "title": "CSC 453",
     "section": "",
     "text": "What isn’t clear?\nComments? Thoughts?"
