@@ -1,0 +1,618 @@
+---
+title: CSC 453
+subtitle: Winter 2026 Day 10
+format: 
+  clean-revealjs:
+    self-contained: true
+    incremental: true
+    margin: 0.15 
+    # height: 700   # Optional: Normal height (defaults to 700)
+    # width: 1000   # Optional: Normal width (defaults to 900)
+---
+
+## Admin
+:::{.nonincremental}
+- Program 3: we need to cover page replacement first (should be Thursday)
+  - It's in C or python, your choice
+:::
+
+## Swapping
+- Swapping allows an entire process to be moved from main memory to a backing store (like disk)
+- Q: Why swap?
+  - Can run far more processes than RAM can handle
+- Q: When do we swap?
+  - When we want to run more processes than can fit into physical memory
+- Q: When swapping back in, where does the process go?
+  - Depends on the memory binding
+  - If runtime, then it can go anywhere (maximum flexibility)
+
+## Swapping caveats
+- Remember though: disk is very slow, so we must be careful and clever about who, how, and when we swap
+  - The amount of time we spend swapping is directly proportional to the amount of memory we want to swap
+  - Transfer time dominates (not context switching)
+- The state of a process matters
+  - E.g. if it's blocked on I/O, we may 1) further delay the I/O by using the disk to swap, 2) a direct I/O request may return to the wrong process
+  - Programs are growing larger, so quite expensive to swap
+    - e.g. 1GB program ~10 sec per swap to a spinning disk
+- In reality: we don't really swap entire processes; too costly and unnecessary
+  - We can swap [pages]{.alert}, we'll talk about this later
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
+
+# Contiguous allocation {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- How do we keep track of free memory and decide where to place processes?
+- What problems arise from fragmentation, and how can we address them?
+- What are the trade-offs between different allocation strategies?
+:::
+
+## Memory allocation strategies
+- How do we find free memory for processes?
+- How do we keep track of free memory?
+- How do we decide which free block to allocate to a process?
+
+## Contiguous allocation
+- Memory is allocated in contiguous blocks
+- One approach: memory may be partitioned into *fixed-sized partitions*, each containing one process
+  - This is very simple, but inflexible
+  - A fixed number of partitions means we can only run n processes, and the size of the partitions may not match the needs of the processes
+- Another approach: *variable-sized partitions*, where we allocate exactly as much memory as a process needs
+
+## Variable partitioning
+- Any obvious problems with variable partitioning?
+  - [External fragmentation]{.alert}: over time, as processes are loaded and unloaded, we can end up with small free blocks of memory that are not usable for new processes
+- To begin, we allocate memory for processes until none fit into any of the "holes"
+- Once there is no hole that is big enough to fit a process, what do we do?
+  - Can we rearrange memory to create enough space?
+    - [Compaction]{.alert}: move processes around to create enough contiguous space for the new process
+    - This is **expensive**
+
+## Allocation strategies
+- How do we decide which hole to use for a new process?
+- [First fit]{.alert}: allocate the first hole that is big enough
+- [Best fit]{.alert}: allocate the smallest hole that is big enough
+- [Worst fit]{.alert}: allocate the largest hole
+- Downsides to these?
+  - First fit: can lead to fragmentation at the beginning of memory
+  - Best/worst fit: require full scan
+  - One solution: [Next fit]{.alert}: similar to first fit, but continues searching from the last allocated hole
+
+## External fragmentation
+- Ideally, we want all memory to be allocated, but
+- In reality, we're left with many holes that are not one is big enough to allocate anything into 
+  - Although, combined they may be
+- All the allocation strategies above can suffer from external fragmentation
+- Generally waste 1/3 of the average process size due to external frag using first-fit or best-fit
+- One solution: compaction, but this is expensive
+
+## Segmentation
+- Previous approaches have been focused on allocating contiguous blocks of memory, but what if we could allow processes to be allocated in non-contiguous segments?
+- [Segmentation]{.alert} divides a process's address space into logical segments (e.g., code, data, stack) that can be allocated separately
+- Each segment has a base and bounds, and the OS maintains a segment table for each process that maps virtual segment numbers to physical memory locations
+- Still suffers from internal fragmentation if segments are not fully utilized
+- Can also lead to external fragmentation, but less so than contiguous allocation since segments can be allocated in non-contiguous memory
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
+
+# Paging {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- How does paging eliminate external fragmentation while supporting multiple processes?
+- How does the hardware (MMU) translate virtual addresses to physical addresses?
+- What information must the OS maintain to support paging?
+:::
+
+## Paging
+- Contiguous allocation schemes have many issues (particularly with finding / managing places to put processes), what should we do? 
+  - Be non-contiguous!
+    - Of course this introduces many new challenges, but alas
+- To completely eliminate external fragmentation, we can use [paging]{.alert}
+  - Non-contiguous memory allocation scheme that divides memory into fixed-size blocks called pages
+  - Requires hardware support (MMU) to translate virtual addresses to physical addresses using a page table
+
+## Paging (cont'd)
+- Jargon!
+  - Physical memory is broken into fixed-sized regions: **frames**; logical memory is broken into fixed-sized regions: **pages**; backing store is also addressed as fixed-sized blocks
+- The paging system handles the mapping of pages to frames
+- Pages may be logically contiguous, whereas the backing frames and blocks are not
+- ~Typically |frames| = |pages| = |blocks|; typically between 512K-16MB
+  - Most common size is 4KB these days
+
+## Paging (cont'd)
+:::: {.columns}
+::: {.column width="58%"}
+- Addresses are divided into two parts: [page number]{.alert} and [page offset]{.alert}
+  - Page number is simply an index to a page
+  - Offset is for addressing within the given page
+- Recall that the process point of view is using virtual addressing
+  - This means we need to bolt address translation into this. What part of the address should we translate?
+  - Page number only. Offset remains the offset
+:::
+::: {.column width="2%"}
+:::
+::: {.column width="38%"}
+![](images/page_offset.png)
+:::
+::::
+
+
+## Paging (cont'd)
+- Now we need a directory to convert between virtual page numbers and physical page frames… The [page table]{.alert}
+  - Can be any of a number of different data structures
+  - The MMU uses the page table to perform address translation on every memory access
+- Mapping is completely transparent to the user / process. OS is in control of the page table
+- Page tables are kept by OS *for each process*
+  - Where should it be stored?
+  - Pointer held in the PCB; more to deal with on context switch
+
+## Page tables
+:::: {.columns}
+::: {.column width="58%"}
+- $2^m$ is the size of the address space (in bytes), and page size is $2^n$ bytes, then the higher $m-n$ bits designate page number; $n$ low-order bits are page offset
+  - $2^4$ (this example) = 16 pages; page size $2^{12}$ = 4K
+  - 32-bit?
+    - $2^{20}$ pages (1M), 4K pages = max 4GB RAM 
+  - 64-bit?
+    - We'll touch on it later, it isn't (currently) $2^{52}$ 
+
+
+:::
+::: {.column width="2%"}
+:::
+::: {.column width="38%"}
+![](images/pagetable.png)
+:::
+::::
+- Using n offset bits, we can address all 4096 bytes within the page
+
+## Examples
+- A system uses a 32-bit virtual address and 8 bits are used for the offset within a page. How many pages? Size of each page? Total size?
+  - $2^{24}$ pages (~16M), 256 byte pages, 4GB total
+- Virtual address is 24 bits long. If 10 bits used for the page index.
+  - $2^{10}$ = 1024 pages, $2^{14}$ = 16KB pages, 16MB total size
+- A system has 256 pages and each page is 8 KB.
+  - 8 bits for index ($2^8$ = 256), 13 bits for offset ($2^{13}$ = 8KB), 21 bit total space = $2^{21}$ = 2MB
+- A system uses a 36-bit virtual address. If the page size is 4 KB
+  - $2^{24}$ pages (16MB), 12-bit offset, ~64GB total
+
+## Page tables (cont'd)
+- Page Size
+  - Depends greatly on system usage
+  - Smaller provides granularity, but a larger page table, more overhead
+  - Larger increases throughput and minimizes disk I/O
+- How do pages affect fragmentation?
+  - **No external frag**
+  - But now we have [internal fragmentation]{.alert}; unless a process is incredibly using some multiple of page size
+  - On average: $1/2$ page size per process 
+
+## Page table entries
+- Page table entry:  what goes into one?
+  - Page frame number (obvi)
+  - [Present/absent]{.alert} bit: is the page frame number valid?
+  - [Protection bits]{.alert}: What kinds of access are permitted 
+  - [Modified/Dirty]{.alert} bit: Has this page been modified, perhaps needing to get written to disk before eviction
+  - [Referenced]{.alert} bit: Has the page been referenced; used for eviction
+  - [Caching disable]{.alert} bit: Is cache disabled for this page (for direct I/O)
+- What doesn't go into one?
+  - Backing store addresses: managed by the file system
+  - We only want things needed for address translation by hardware
+
+## Paging summary
+- Pages allow us to:
+  - Load processes at a finer granularity
+  - Not experience external fragmentation
+  - Swap at page granularity (often termed "paging" rather than "swapping")
+- But leads us to have some questions:
+  - How do I know which pages are in memory, and which are not?
+  - When I need to swap page, which go and which stay?
+  - How do I know which pages contain modified data, and I need to write to disk?
+
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
+
+# Page replacement {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- What makes a good page replacement strategy, and why?
+- How can we approximate optimal page replacement without knowing the future?
+- What are the practical implementation challenges for different page replacement algorithms?
+:::
+
+## Page replacement policies
+- When a running process needs a page, but physical memory is full, we must evict a frame to make room; this is [page replacement]{.alert}
+- Which frame do we evict?
+- The frame to evict is called the **victim**
+  - In some cases, victims may be simply overwritten in memory. When would that make sense?
+    - If they are read-only or haven't been modified
+  - Or may need to be written to swap (because they have been modified)
+
+## Page replacement
+- Keep in mind: Page replacement is a costly operation: at least two I/O operations, so its important to minimize
+  - If we're not careful in how we select our victims, we may further delay the system
+- Oddly enough, dirty pages may be good victims. Why?
+  - Because it has to be written anyways
+- Potential downside?
+  - It forces the write which may have better optimized with other dirty blocks (potentially disallowing principle of locality benefits)
+  - Dirty blocks also are indicative of activity
+
+## Page replacement algorithms: OPT
+- Optimal Page Replacement (OPT)
+  - We really want to evict the page that *will not be used longest*
+  - Each page could be labeled with the number of instructions that will be executed BEFORE page is referenced
+  - Of course, this is impossible (akin to SJF as optimal), but useful as a benchmark
+  - Example: RAM with 3 slots, following reference pattern:
+![](images/pagereplacementpattern.png)
+![](images/opt_result.png){.fragment}
+
+## Page replacement algorithms: FIFO
+- First-In-First-Out (FIFO)
+- Simple: first page in (oldest) will be evicted
+- Downsides?
+  - Indiscriminate of use: might throw out important pages
+- Can lead to [Belady's anomaly]{.alert}: adding more frames can lead to more page faults
+  - Why? Because it doesn't consider use at all (the stack property)
+  - Try this reference pattern with 3 frames and then 4 frames to see the anomaly:
+![](images/beladys.png)
+
+## Page replacement algorithms: LRU
+- We can't tell the future, what should we do?
+  - Look at the past
+- Least Recently Used (LRU)	
+  - Each page has some age with respect to use; replace page that hasn't been used in the longest time
+  - Like OPT, but only looking backwards
+    - Unfortunately, there is a chance that the page you evict is needed immediately
+
+## LRU (cont'd)
+- LRU does not exhibit Belady's anomaly
+- How can we implement LRU?
+  - Counters: each entry has an associated clock
+    - No, waste of space, takes time to search
+  - Ordered queue	
+    - Less space wasted, but a lot more memory accesses (pointers) to keep up-to-date
+  - Both are impractical without specialized hardware
+  - We can *approximate* LRU with a single bit in the page table entry: **reference bit**	
+    - Bit set when page is referenced
+    - Bits set to zero initially and on context switch
+
+## Page replacement algorithms: others
+- Second Chance
+  - Use a FIFO queue and a reference bit
+    - If bit is 0, replace the page
+    - If bit is 1, set to 0 and move to the end of the queue
+  - Downside?
+    - Moving pages around is expensive
+- Clock
+  - Page frames in a circular list, and have a clock "hand" point to the newest page
+  - When evicting, look at page pointed to by hand
+    - If reference bit is 0, replace page
+    - If bit is 1, set to 0, and advance hand
+  - A nice approximation of LRU
+
+## Page replacement algorithms: others (cont'd)
+- Least Frequently Used
+  - Keep / increment counter for each page
+  - One with lowest value
+  - Downside?
+    - If something is used a lot at program startup, then no longer. Answer to this is aging
+- Most Frequently Used
+  - Same as above only evict the page with highest value
+  - Downside?
+    - One with the smallest value just arrived, yet to be used
+- Both are bad ideas. They do not approximate OPT and they are expensive 
+
+## Page replacement algorithms: summary
+- OPT is optimal but impossible. LRU is a good approximation.
+- Many different page replacement algorithms (many not covered here), with different performance characteristics and hardware requirements
+- e.g., Linux: LRU 2Q
+  - Two FIFO lists, each simulating the reference bit state
+  - No hardware requirement
+- Note that the concept of page replacement is seen at all interfaces of the memory hierarchy, just at different time scales; and, within certain applications
+  - We focus on the disk/RAM interface because the difference in access time is so great
+
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
+
+# Page tables {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- Why is page table size a critical concern for memory efficiency?
+- How can hardware support (like the TLB) improve address translation performance?
+- What are the advantages and disadvantages of different page table storage locations?
+:::
+
+## Page table size
+- If we have a 32-bit address space and 4KB pages, we have:
+  - $2^{20}$ pages (1M)
+  - Each page table entry is typically 4 bytes
+  - Total page table size = 4MB *per process*
+  - If we have 100 processes, that's 400MB just for page tables. *Yikes*
+- We'll come back to this later. Bottom line: we do not use linear page tables (what we've talked about so far, e.g., the page table as an array)
+
+## Page table size (cont'd)
+- To be efficient: we're going to require some hardware support and clever structures
+- Why do we care?
+  - Reason 1 (Speed): Translations must be done on every memory reference
+  - Reason 2 (Cost): memory is getting larger: 
+    - 32-bit words, 4K page: 1 million entries at 4 bytes each = 4MB per process; 
+    - 64-bit words, 4K page: $2^{52}$ entries at 8 bytes each = 30M GB (30 PB)
+  
+## Page table access
+- Where should the page table be stored?
+  - Old solution: registers and special hardware (not scalable)
+  - Real answer: in main memory 
+    - PCB holds pointer to page table; context switch needs to account for this
+  - See any downsides to this?
+    - If the page table is large, it can consume a lot of memory
+    - Requires two memory accesses for each actual memory access (one for the page table, one for the data)
+    - How do we speed this up?
+      - Hardware
+    
+## Translation lookaside buffer (TLB)
+- Use [associative memory]{.alert}
+  - Can someone tell me what's special about associative (a.k.a. content-addressable) memory?
+    - *Parallel search*: All key values can be queried at once; if found, value is returned
+- Comprised of key(tag)-value pairs
+  - Ultimately it is a cache for the page table
+- **Expensive**, so TLB only contains a small number of entries
+
+## TLB (cont'd)
+:::: {.columns}
+::: {.column width="58%"}
+- How it works: logical address from CPU (say, a process is looking to load a variable stored at address 100 in its address space)
+- If it's a **miss** (not in TLB); we must fetch the entry from the page table, perhaps replacing an existing entry
+  - *soft miss*: page is in main memory
+  - *hard miss*: page is on disk (swapped, also known as a page fault)
+:::
+
+::: {.column width="2%"}
+:::
+::: {.column width="38%"}
+![](images/TLB.png)
+:::
+::::
+
+## TLB (cont'd)
+- If it's a **hit** (in TLB), we can directly get the physical address and access memory
+  - TLB is fast enough that a hit results in one memory access (for the data), while a miss results in two memory accesses (one for the page table, one for the data)
+- Hit ratio determines [effective access time]{.alert}
+- Example: 80% hit rate; 10ns to access memory
+  - A hit = 10ns; a miss = 20ns
+  - EAT = $(.8 * 10) + (.2 * 20) = 12ns$
+  - 99% hit? = $(.99 * 10) + (.01 * 20) = 10.1ns$
+- What about processes that we'd like to keep in the TLB? (kernel)
+  - "Wired down" i.e., cannot be replaced
+
+## TLB (cont'd)
+- Wait, we have multiple processes with virtual addressing and one small TLB. What happens on a context switch?
+  - E.g., virtual page 1 for process one != virtual page 1 for process 2
+- Could **flush**: empty on context switch
+  - Downside? 
+    - You lose a lot of the goodness of caching. Needs to be rebuilt every time
+- Other idea?
+  - [Address-space identifiers]{.alert} (ASIDs) will bind TLB entries to a particular process
+    - Preventing a process from access a page that doesn't belong to it, but allowing pages from multiple processes to coexist in the TLB
+
+:::{.notes}
+![](images/asid.png)
+:::
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
+
+# Page table structures {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- How can we organize page tables to handle large address spaces efficiently?
+- What are the trade-offs between space overhead and lookup complexity?
+- When and why would we choose alternative page table designs?
+:::
+
+## Page table structures
+:::: {.columns}
+::: {.column width="50%"}
+- Linear page tables are wasteful; particularly if you have a number of unused pages (likely)
+- Answer?
+  - Multilevel page tables
+:::
+::: {.column width="2%"}
+:::
+::: {.column width="48%"}
+![](images/multilevelpagetable.png){.fragment}
+:::
+::::
+
+## Multilevel page tables
+:::: {.columns}
+::: {.column width="50%"}
+- Example: Two-level page table: Split the page table address into two
+  - 10-bit PT1, 10-bit PT2, and 12-bit offset field
+- Top level page table references 1024 2nd tier page tables
+- Each 2nd tier page table references 1024, 4K pages
+:::
+::: {.column width="2%"}
+:::
+::: {.column width="48%"}
+![](images/multilevel_example.png)
+:::
+::::
+- Benefit?
+  - 2nd tier tables need not be resident in memory if unused
+  - $2^{20}$ addressable, with only 4 tables resident (16KB rather than 4MB)
+
+## Multilevel page tables (cont'd)
+:::: {.columns}
+::: {.column width="40%"}
+- This is expandable to more levels
+  -  Note that 64-bit doesn't use the full 64-bit
+    - 48-bits allow us to address 256TB
+:::
+::: {.column width="2%"}
+:::
+::: {.column width="58%"}
+![](images/intelx64pagetable.png)
+:::
+::::
+
+## Inverted page tables
+:::: {.columns}
+::: {.column width="50%"}
+- What we've seen so far: one page table per process
+- Alternative: one page table for the entire system, with an entry for each frame of physical memory (**inverted page table**)
+  - Each entry contains the virtual address of the page stored in that frame, along with information about the process that owns that page
+  - Entry holds which pid owns the frame, and its virtual address
+:::
+::: {.column width="2%"}
+:::
+::: {.column width="48%"}
+![](images/invertedpagetable.png)
+:::
+::::
+
+## Inverted page tables (cont'd)
+- Reduces size, but increases lookup complexity
+  - must do a full search of the page table (slow)
+- We can use a hash table to index into page table, or combine with a TLB to speed up frequent lookups
+- Not commonly used in practice
+  - Once RAM became cheaper, the size of page tables became less of an issue, and the complexity of inverted page tables outweighed their benefits
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
+
+# Virtual memory summary {background-color="#40666e"}
+
+## Questions to consider
+:::{.nonincremental}
+- How does virtual memory enable processes to use more memory than physically available?
+- What strategies can we use to determine which pages should be in memory at any given time?
+- What problems occur when memory contention is too high, and how can we detect and prevent them?
+:::
+
+## Virtual memory summary
+- Previous (naïve) discussions assumed that all of a process's pages are present in memory when running
+- Virtual Memory is system built around the main ideas supported by paging
+- Allows the system to present a large, logically contiguous memory to every process, while being non-contiguous in physical memory
+- Supported by pages + swap 
+
+## Virtual memory summary (cont'd)
+- Many advantages
+  - Processes see the same logical, contiguous address space, making programming easier
+  - Logical memory may be sparse; i.e. a hole in the logical space does not (necessarily) mean a hole in the physical space
+  - Pages may be shared among processes (shared libraries, shared memory or fork()'d processes)
+- Logical memory (for a single or many processes) may actually be bigger than physical memory
+
+## Memory residency
+- Not all process pages can reside in memory at once; further, we many not need all pages in memory at once
+- But… we need a page to be in main memory to be accessed
+- We've talked about choosing victims to replace in memory, How do we select pages to be in main memory?
+
+## Demand paging
+:::: {.columns}
+::: {.column width="50%"}
+- We can load pages into memory only when they are needed, which is called [demand paging]{.alert}
+- Here we see why the valid bit is useful
+  - Valid implies "allocated and in memory"
+  - Invalid implies "not allocated or not in memory"
+:::
+::: {.column width="2%"}
+:::
+::: {.column width="48%"}
+![](images/demandpaging.png)
+:::
+::::
+
+## Demand paging (cont'd)
+- If process has a **page fault**, we trap to the OS, which
+  1. interrupts the process
+  2. finds a free frame (if one exists)
+  3. requests the block from the backing store or swap space
+  4. brings the page into memory
+  5. updates the page table
+  6. restarts the processes
+- Non-resident pages may have never been in memory (so in the file system) or were once resident and swapped out (to swap space)
+
+## Pure demand paging
+- Most extreme scheme
+- In pure demand paging, all pages are non-resident at the start of execution
+- This is not common in practice, as it can lead to a large number of page faults at the start of execution, which can significantly degrade performance
+
+## Working set
+- To mitigate the performance issues of pure demand paging, we can use the concept of a [working set]{.alert}
+- Takes advantage of the principle of locality: processes tend to access a relatively small set of pages over a short period of time
+- Working-set model: 
+  - Define a window $\Delta$ (most recent page references)
+  - If a page is referenced within the window, it's in the working set; otherwise, it's not
+- Allows for **prepaging** pages that are likely to be used soon, improving performance by reducing page faults
+  - *just* outside of the working set, the OS can see "the working set is expanding in this direction, so let's prefetch some pages in that direction"
+
+## Thrashing
+- If the working set of a process exceeds the available physical memory, the process will experience a high rate of page faults, leading to a condition called [thrashing]{.alert}
+- When the page fault time exceeds the time spent executing, we are said to be thrashing
+- Problem: CPU scheduler sees the decreasing CPU utilization and increases the degree of multiprogramming; makes thrashing *worse*
+- Solutions?
+  - [Local replacement algorithm]{.alert} (each process can only select victims from its set of allocated frames)	
+  - i.e. cannot steal frames from another process and cause the latter to thrash as well
+  - [Decrease the degree of multiprogramming]{.alert} (reduce the number of processes)
+
+## Optimizing shared pages
+- Remember how fork() and exec() work?
+  - Fork leads to a copy of the parent's address space
+  - … but exec() means that a lot of children immediately replace, making a copy wasteful
+- What should we do?
+  - Share the pages initially
+  - If either the parent or the child writes to the shared page, then you actually make a copy ([copy-on-write]{.alert})
+  - Copy-on-write significantly speeds up fork operation; particularly if they will soon exec
+
+## Huge pages
+- As we discussed, page tables can be large, and TLBs are small. This can lead to a high TLB miss rate, which can significantly degrade performance.
+- One solution is to use larger page sizes, known as [huge pages]{.alert}
+- By using huge pages (e.g., 2MB instead of 4KB), we can reduce the number of pages, and thus the size of the page table, and increase the TLB hit rate
+- Newer kernels support transparent huge pages, which automatically use huge pages when possible without requiring changes to applications
+- Danger: internal fragmentation can be much worse with huge pages, so they are not ideal for all workloads
+
+## Linux memory security
+- Linux provides several features to enhance memory security, such as:
+  - [Address Space Layout Randomization (ASLR)]{.alert}: randomizes the memory addresses used by a process, making it more difficult for attackers to predict where code or data is located
+  - [Kernel Address Space Layout Randomization (KASLR)]{.alert}: randomizes the memory addresses used by the kernel
+  - [Data Execution Prevention (DEP)]{.alert}: marks certain areas of memory as non-executable, preventing code from being executed from those regions (e.g., the stack)
+    - NX bit: hardware support for DEP held in the page table entry
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
