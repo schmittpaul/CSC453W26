@@ -1694,6 +1694,300 @@
     "text": "What isn’t clear?\nComments? Thoughts?"
   },
   {
+    "objectID": "day13.html#admin",
+    "href": "day13.html#admin",
+    "title": "CSC 453",
+    "section": "Admin",
+    "text": "Admin\n\nMidterm 2 on Thursday\nNo quiz this week\nLab due 3/2"
+  },
+  {
+    "objectID": "day13.html#the-rule-that-drives-everything",
+    "href": "day13.html#the-rule-that-drives-everything",
+    "title": "CSC 453",
+    "section": "The rule that drives everything",
+    "text": "The rule that drives everything\n\nPage tables must be page-sized\n\nA page table is just another data structure stored in memory\nThe OS allocates exactly one page (4 KB) to hold each page table\nWhy? So page tables themselves can be managed by the paging system — no special-case allocator needed\n\nThis constraint propagates to everything else:\n\nentry size → number of entries → bits consumed per level"
+  },
+  {
+    "objectID": "day13.html#two-level-page-tables-32-bit",
+    "href": "day13.html#two-level-page-tables-32-bit",
+    "title": "CSC 453",
+    "section": "Two-level page tables (32-bit)",
+    "text": "Two-level page tables (32-bit)\n\n32-bit virtual address: split as 10 | 10 | 12\n\n12-bit offset → 4 KB pages (\\(2^{12}\\) bytes)\nEach entry is 4 bytes → entries per table = \\(4096 / 4 = 1024 = 2^{10}\\) → 10-bit index\n\nTwo-level structure:\n\nPage Directory (top): 1024 entries, each pointing to a Page Table\nPage Table (bottom): 1024 entries, each pointing to a physical frame\n\nKey win: if a Page Directory entry is marked invalid, its entire Page Table need not exist in memory at all\n\nWith only a few tables resident, e.g. 4 × 4 KB = 16 KB instead of 4 MB"
+  },
+  {
+    "objectID": "day13.html#two-level-page-table-address-breakdown",
+    "href": "day13.html#two-level-page-table-address-breakdown",
+    "title": "CSC 453",
+    "section": "Two-level page table: address breakdown",
+    "text": "Two-level page table: address breakdown\n\n\n\n\n\nField\nBits\nMeaning\n\n\n\n\nPT1 (dir index)\n10\nwhich page table\n\n\nPT2 (page index)\n10\nwhich entry in that table\n\n\nOffset\n12\nbyte within page\n\n\n\n\n\\(2^{10}\\) entries × 4 bytes = 4,096 bytes = exactly one page"
+  },
+  {
+    "objectID": "day13.html#pae-the-problem",
+    "href": "day13.html#pae-the-problem",
+    "title": "CSC 453",
+    "section": "PAE: the problem",
+    "text": "PAE: the problem\n\nClassic 32-bit: max physical memory = 4 GB\n\nPage table entries only hold a 20-bit physical frame number (PFN)\nServers needed more RAM — hardware could address 36 bits (64 GB), but the PTE couldn’t hold it\n\nFix: widen each PTE from 4 bytes → 8 bytes\n\nNow the PFN field can hold 36-bit physical addresses\n\nBut remember the rule: page tables must be page-sized (4 KB)"
+  },
+  {
+    "objectID": "day13.html#pae-why-9-bit-indices",
+    "href": "day13.html#pae-why-9-bit-indices",
+    "title": "CSC 453",
+    "section": "PAE: why 9-bit indices?",
+    "text": "PAE: why 9-bit indices?\n\nEntry size doubled → table capacity halved: \\[4096 \\text{ bytes} \\div 8 \\text{ bytes/entry} = 512 \\text{ entries} = 2^9\\]\nSo each level now uses a 9-bit index, not 10-bit\nAccounting for a 32-bit virtual address:\n\n12 bits: page offset (unchanged)\n9 bits: Page Directory index\n9 bits: Page Table index\n2 bits left over → used as index into a tiny new top level: the Page Directory Pointer Table (PDPT)\n\nPDPT has only 4 entries (2 bits) and fits in 32 bytes — not even a full page"
+  },
+  {
+    "objectID": "day13.html#pae-side-by-side",
+    "href": "day13.html#pae-side-by-side",
+    "title": "CSC 453",
+    "section": "PAE: side-by-side",
+    "text": "PAE: side-by-side\n\n\nClassic 32-bit (no PAE)\n\n\n\nField\nBits\n\n\n\n\nPage Directory\n10\n\n\nPage Table\n10\n\n\nOffset\n12\n\n\n\n\nEntry size: 4 bytes\nEntries per table: 1024\nMax physical: 4 GB\n\n\n\n\nPAE (36-bit physical)\n\n\n\nField\nBits\n\n\n\n\nPDPT index\n2\n\n\nPage Directory\n9\n\n\nPage Table\n9\n\n\nOffset\n12\n\n\n\n\nEntry size: 8 bytes\nEntries per table: 512\nMax physical: 64 GB\n\n\n\nSame rule, different entry size → different bit split"
+  },
+  {
+    "objectID": "day13.html#pae-what-changed-what-didnt",
+    "href": "day13.html#pae-what-changed-what-didnt",
+    "title": "CSC 453",
+    "section": "PAE: what changed, what didn’t",
+    "text": "PAE: what changed, what didn’t\n\nChanged\n\nPTE size: 4 → 8 bytes (holds 36-bit PFN)\nEntries per table: 1024 → 512 (10-bit → 9-bit index)\nAdded PDPT level (uses the 2 leftover bits)\nTotal system physical address space: 4 GB → 64 GB\n\nUnchanged\n\nVirtual address is still 32 bits\nEach process is still limited to 4 GB virtual address space\nPage size: still 4 KB\nPage tables are still exactly one page each (4 KB)"
+  },
+  {
+    "objectID": "day13.html#how-do-we-get-36-bit-physical-addresses-with-only-32-bit-virtual-addresses",
+    "href": "day13.html#how-do-we-get-36-bit-physical-addresses-with-only-32-bit-virtual-addresses",
+    "title": "CSC 453",
+    "section": "How do we get 36-bit physical addresses with only 32-bit virtual addresses?",
+    "text": "How do we get 36-bit physical addresses with only 32-bit virtual addresses?\n\nThe virtual address space is still 32 bits, so each process can only address 4 GB of memory\nTotal system physical address space: 4 GB → 64 GB\n\nHow? The OS effectively adds 4 extra bits to every physical address\nA process issues a 32-bit virtual address; the OS translates it through page tables whose entries store 36-bit physical frame numbers\nThe process has no access to those upper 4 bits — only the OS decides where in physical memory a page lands\nDifferent processes can be mapped to completely different 4 GB regions of the 64 GB physical space"
+  },
+  {
+    "objectID": "day13.html#review-check",
+    "href": "day13.html#review-check",
+    "title": "CSC 453",
+    "section": "Review check",
+    "text": "Review check\n\nA 32-bit system uses 4 KB pages and 8-byte PTEs. How many bits does each page table level index consume, and why?\n\n\n\nAnswer: \\(4096 \\div 8 = 512 = 2^9\\) → 9-bit index\n\nBecause the page table must fit in exactly one page, and larger entries mean fewer of them\n\nFollow-up: what if entries were 16 bytes?\n\n\n\n\n\\(4096 \\div 16 = 256 = 2^8\\) → 8-bit index\n\nSame logic, entry size dictates table capacity, which dictates bits consumed"
+  },
+  {
+    "objectID": "day13.html#section",
+    "href": "day13.html#section",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day13.html#questions-to-consider",
+    "href": "day13.html#questions-to-consider",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhy do we need file systems? What problem do they solve?\nWhat features must a file system provide beyond just storing raw data?\nHow do file systems provide a consistent interface regardless of the underlying hardware?"
+  },
+  {
+    "objectID": "day13.html#overview",
+    "href": "day13.html#overview",
+    "title": "CSC 453",
+    "section": "Overview",
+    "text": "Overview\n\nWhy do we care about data persistence?\nIt’s half of a Turing Machine\nSometimes machines need to be turned off\nTypically, we’re computing on data, and for data\n\nSometimes {a lot, a little bit} of data goes in, {a small, a large} amount of data comes out\n\ne.g. Scientific computing: modeling large systems to answering simple questions (how does this protein fold?)\n\nIn 2009 (yes, this is an old slide):\n\nGoogle processed 24 PB of data per day\nFacebook claimed to store 1.5 PB of photo data\nInternet Archive stored 2PB of data, growing 20TB per month\nAvatar took up 1PB of storage for renderings"
+  },
+  {
+    "objectID": "day13.html#file-systems-1",
+    "href": "day13.html#file-systems-1",
+    "title": "CSC 453",
+    "section": "File systems",
+    "text": "File systems\n\nWe’ll talk about actual disks later. But we’ll start with files and file systems\nWhat do you think file systems do?\n\nThey organize data into files and directories\nThey provide a consistent, simple API for the OS to use, no matter the actual approach that the file system takes or how the disk is organized\nOther features:\n\nAccess control (e.g., permissions)\nReliability (e.g., journaling)"
+  },
+  {
+    "objectID": "day13.html#file-systems-contd",
+    "href": "day13.html#file-systems-contd",
+    "title": "CSC 453",
+    "section": "File systems (cont’d)",
+    "text": "File systems (cont’d)\n\nWhat do we want from FS?\n\nTo access, organize, and persist data\nProvide protection and concurrency of data access\nImplement optimizations that provide good performance\n\nFile systems provide an object abstraction and interface for data (yet another virtual layer)\n\nObject: files, directories, links, metadata\nInterfaces: lookup, read, write, rename, truncate, position, delete\nServices: naming, object hierarchies, metadata, locking, allocation, layout, security and optimizations"
+  },
+  {
+    "objectID": "day13.html#section-1",
+    "href": "day13.html#section-1",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day13.html#questions-to-consider-1",
+    "href": "day13.html#questions-to-consider-1",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhat is a file, and what information does the OS need to track beyond just the raw data?\nHow should the OS present a file to a program, and why is a flat byte array the dominant abstraction?\nWhat types of files does Linux support, and how does this differ from file extensions?"
+  },
+  {
+    "objectID": "day13.html#files-1",
+    "href": "day13.html#files-1",
+    "title": "CSC 453",
+    "section": "Files",
+    "text": "Files\n\nWhat is a file?\nFiles are the first-class, logical units of data with which processes interact\n\nA file is more than the data that constitutes the file\nWhat is a file’s name?\n\nA reference to the file. A file can have multiple names (links).\n\nWhat is its type? What are its access permissions? Who owns it? When was it created? Or, last accessed?\n\nThese are all examples of metadata\n\nWhere does the data live on persistent storage device? How do we make updates to it?\n\nThe file system’s job is to give us the ability to read/write, the physical layout on disk may or may not be the file system’s concern"
+  },
+  {
+    "objectID": "day13.html#how-do-files-relate-to-file-systems",
+    "href": "day13.html#how-do-files-relate-to-file-systems",
+    "title": "CSC 453",
+    "section": "How do files relate to file systems?",
+    "text": "How do files relate to file systems?\n\nFiles are just an abstraction, and it’s the file system’s job to provide it\nWe need to shield the user from having to directly manage all of the above"
+  },
+  {
+    "objectID": "day13.html#file-naming",
+    "href": "day13.html#file-naming",
+    "title": "CSC 453",
+    "section": "File naming",
+    "text": "File naming\n\nHow do you think names can be leveraged?\nRestrictions on how files are named are up to the OS\nAs is the enforce of extensions (e.g. .c, .exe, .txt)\n\nUNIX doesn’t care: extensions are just hints for and by users\nWindows does care: extensions hint at the types of accesses and classes of processes allowed"
+  },
+  {
+    "objectID": "day13.html#file-structures",
+    "href": "day13.html#file-structures",
+    "title": "CSC 453",
+    "section": "File structures",
+    "text": "File structures\n\nHow should the OS present a file to a user / program?\nMost commodity OSes represent files as a logically contiguous array of bytes\n\nBoth a human-readable name and an OS-level identifier (inode)\nVery flexible from a user/process perspective\n\nSome files are more heavily structured\n\nDatabases only accept records\nBig Data file systems e.g. may only accept data blobs, or may requires a “document” (XML) structure\n\nWho decides how a file is structured?\n\nOS\nProgram"
+  },
+  {
+    "objectID": "day13.html#linux-file-types",
+    "href": "day13.html#linux-file-types",
+    "title": "CSC 453",
+    "section": "Linux file types",
+    "text": "Linux file types\n\nWhat do you think are some example file types from the OS’s perspective? (it’s not .c, .txt, etc., but more about the underlying structure and semantics of the file)\nIn UNIX, there are a few OS-supported file types\n\nRegular file (ASCII, binary)\n\nE.g., plaintext, images, executables\n\nDirectories (more on this later)\nCharacter special files (abstraction of a character device)\n\nE.g., /dev/tty, /dev/eth0, /dev/random\n\nBlock special files (an abstraction of a block device)\n\nE.g., /dev/sda"
+  },
+  {
+    "objectID": "day13.html#file-access",
+    "href": "day13.html#file-access",
+    "title": "CSC 453",
+    "section": "File access",
+    "text": "File access\n\nHow do we want to access files?\nEarly OSes only supported sequential access (with rewind)\n\nThis was sensible, because our IO devices (tape, punch cards) were also sequential\n\nWhen disks were introduced, this enabled random access\n\nEnables a whole new class of applications and execution models (e.g. databases, virtual memory)"
+  },
+  {
+    "objectID": "day13.html#file-attributes",
+    "href": "day13.html#file-attributes",
+    "title": "CSC 453",
+    "section": "File attributes",
+    "text": "File attributes\n\nAs mentioned, a file is more than just its data: all the attributes and other related information must be persistent as well\nWe call this metadata (data about data)\nWhat metadata should be accessible through file APIs?\n\nCommon examples: Access bits, creator, owner, size, pointers to blocks on disk"
+  },
+  {
+    "objectID": "day13.html#file-operations",
+    "href": "day13.html#file-operations",
+    "title": "CSC 453",
+    "section": "File operations",
+    "text": "File operations\n\nWhat operations do we want to support on files?\nCommon operations:\n\ncreate, delete, read, write, append, truncate, rename, position (seek), get attributes, set attributes, link, unlink\n\nSome of these are straightforward (e.g. read, write), but some are more complex (e.g. rename, link, unlink)\n\nE.g., rename: we need to update the directory entry, but the file’s data and metadata may not change at all\nE.g., link: we need to create a new directory entry that points to the same file (inode), but the file’s data and metadata may not change at all"
+  },
+  {
+    "objectID": "day13.html#section-2",
+    "href": "day13.html#section-2",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day13.html#questions-to-consider-2",
+    "href": "day13.html#questions-to-consider-2",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nWhy do hierarchical directories solve problems that flat directories cannot?\nWhat is the difference between a hard link and a soft link?\nWhat happens when you delete a file that has multiple hard links? A soft link?"
+  },
+  {
+    "objectID": "day13.html#overview-1",
+    "href": "day13.html#overview-1",
+    "title": "CSC 453",
+    "section": "Overview",
+    "text": "Overview\n\nWhat is a directory?\n\nIn the abstract, they provide us ways to organize into a hierarchical structure\n\nIn a file system?\n\nA directory is a special type of file that contains references to other files (and directories)\n\nWhat operations do directories support?\n\nSearch for a file\nCreate a file\nDelete a file\nList a dir\nRename a file\nTraverse the file system"
+  },
+  {
+    "objectID": "day13.html#directories-1",
+    "href": "day13.html#directories-1",
+    "title": "CSC 453",
+    "section": "Directories",
+    "text": "Directories\n\nWhy don’t we use a single (flat) directory for all users?\n\nNaming problem: each file must be unique\nGrouping problem: how to remember what files are mine / relate to my current coding project?\n\nWhat if we just had a single directory for each user but stayed flat otherwise?\n\nYou still have a naming problem. How many Makefiles do you have?"
+  },
+  {
+    "objectID": "day13.html#directory-structure",
+    "href": "day13.html#directory-structure",
+    "title": "CSC 453",
+    "section": "Directory structure",
+    "text": "Directory structure\n\n\n\nHow do we want to structure directories?\nA common approach is to use a hierarchical structure (tree)\n\nUNIX: a tree starting with root (“/”)\n\nOvercomes the problems associated with a single directory\n\nCan have multiple files with the same name\nCan help logically organize\n\nPaths can be absolute or relative\n\nExamples?\n\nAbsolute: /home/prs/file.txt\nRelative: ./file.txt"
+  },
+  {
+    "objectID": "day13.html#directories-contd",
+    "href": "day13.html#directories-contd",
+    "title": "CSC 453",
+    "section": "Directories (cont’d)",
+    "text": "Directories (cont’d)\n\n\n\nWhat’s with . and ..?\nSpecial directory entries\n\n. Refers to itself\n.. Refers to the parent directory"
+  },
+  {
+    "objectID": "day13.html#directory-operations",
+    "href": "day13.html#directory-operations",
+    "title": "CSC 453",
+    "section": "Directory operations",
+    "text": "Directory operations\n\nWhat operations do we want to support on directories?\nCommon operations:\n\ncreate, delete, opendir, closedir, readdir, rename, link, unlink\n\nLinks can be hard links or soft links\n\nWho can tell me the difference?\nHow do you create them in Linux?\nWhat happens when you delete a hard linked file?\nWhat happens when you delete a soft linked file?"
+  },
+  {
+    "objectID": "day13.html#section-3",
+    "href": "day13.html#section-3",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
+    "objectID": "day13.html#questions-to-consider-3",
+    "href": "day13.html#questions-to-consider-3",
+    "title": "CSC 453",
+    "section": "Questions to consider",
+    "text": "Questions to consider\n\nHow does Linux support many different file systems (ext4, FAT32, NTFS) on the same machine simultaneously?\nWhat does the kernel actually track when a process opens a file?\nHow do file descriptors relate to the kernel’s internal representation of open files?"
+  },
+  {
+    "objectID": "day13.html#overview-2",
+    "href": "day13.html#overview-2",
+    "title": "CSC 453",
+    "section": "Overview",
+    "text": "Overview\n\nWe want to support many different file systems, often running on the same system\n\nE.g. FAT32, NTFS, ext3, ext4, etc.\n\nHow should we accomplish this seamlessly?\n\nVirtual File System (VFS)\n\nOO approach created by Sun\nVFS offers generic APIs"
+  },
+  {
+    "objectID": "day13.html#vfs",
+    "href": "day13.html#vfs",
+    "title": "CSC 453",
+    "section": "VFS",
+    "text": "VFS\n\nSystem call interface: APIs for user programs\nVFS: manages the namespace, keeps track of open files, reference counts, file system types, mount points, pathname traversal.\nFile system module: understands how the file system is implemented on the disk. Can fetch and store metadata and data for a file, get directory contents, create and delete files and directories\nBuffer cache: no understanding of the file system; takes read and write requests for blocks or parts of a block and caches frequently used blocks.\nDevice drivers: the components that actually know how to read and write data to the disk."
+  },
+  {
+    "objectID": "day13.html#vfs-contd",
+    "href": "day13.html#vfs-contd",
+    "title": "CSC 453",
+    "section": "VFS (cont’d)",
+    "text": "VFS (cont’d)"
+  },
+  {
+    "objectID": "day13.html#file-descriptors",
+    "href": "day13.html#file-descriptors",
+    "title": "CSC 453",
+    "section": "File descriptors",
+    "text": "File descriptors\n\nWhen a process calls open(), the OS returns a small non-negative integer: a file descriptor (fd)\nThe fd is just an index into the process’s per-process file descriptor table (stored in the PCB)\nThree fds are always pre-opened for every process:\n\n0 → stdin, 1 → stdout, 2 → stderr\n\nAll subsequent file syscalls take the fd as their first argument:\n\nread(fd, buf, n), write(fd, buf, n), close(fd), lseek(fd, offset, whence)\n\nWhy return an int instead of a pointer?\n\nSafety: the process can’t dereference or forge a kernel pointer\nThe kernel remains in control of the underlying state"
+  },
+  {
+    "objectID": "day13.html#open-file-table",
+    "href": "day13.html#open-file-table",
+    "title": "CSC 453",
+    "section": "Open file table",
+    "text": "Open file table\n\nThe per-process fd table doesn’t hold file state directly — it points into a system-wide open file table\nEach entry in the open file table tracks:\n\nCurrent offset (position for the next read/write)\nAccess mode (read-only, write-only, read-write, append)\nReference count (how many fd table entries point here)\nPointer to the inode (the actual file metadata + data block pointers)\n\nWhy two separate tables?\n\nTwo processes independently open() the same file → two open file table entries → independent positions\nfork() copies the fd table, so parent and child share the same open file table entry → shared position and reference count incremented"
+  },
+  {
+    "objectID": "day13.html#three-table-model",
+    "href": "day13.html#three-table-model",
+    "title": "CSC 453",
+    "section": "Three-table model",
+    "text": "Three-table model\n\nPer-process fd table (in PCB): small, just indices\nSystem-wide open file table: one entry per open() call\nSystem-wide inode table: one entry per file, regardless of how many times it’s open\nKey insight: the name of a file lives in a directory; the file itself is the inode"
+  },
+  {
+    "objectID": "day13.html#vfs-four-key-abstractions",
+    "href": "day13.html#vfs-four-key-abstractions",
+    "title": "CSC 453",
+    "section": "VFS: Four key abstractions",
+    "text": "VFS: Four key abstractions\n\nSuperblock: one per mounted file system; tracks the file system type, size, status, and other info\nInode: one per file; tracks file type, permissions, owner, size, pointers to data blocks, etc.\nDentry: one per directory entry; tracks the name and pointer to the inode\nFile: one per open file; tracks the current position, pointer to the inode, pointer to the dentry, etc."
+  },
+  {
+    "objectID": "day13.html#section-4",
+    "href": "day13.html#section-4",
+    "title": "CSC 453",
+    "section": "",
+    "text": "What isn’t clear?\nComments? Thoughts?"
+  },
+  {
     "objectID": "day10.html#admin",
     "href": "day10.html#admin",
     "title": "CSC 453",
