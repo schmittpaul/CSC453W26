@@ -165,7 +165,6 @@ Comments? Thoughts?
 - All subsequent file syscalls take the fd as their first argument:
   - `read(fd, buf, n)`, `write(fd, buf, n)`, `close(fd)`, `lseek(fd, offset, whence)`
 - Why return an int instead of a pointer?
-  - Safety: the process can't dereference or forge a kernel pointer
   - The kernel remains in control of the underlying state
 
 ## Open file table
@@ -182,7 +181,7 @@ Comments? Thoughts?
 ## Three-table model
 - Per-process [fd table]{.alert} (in PCB): small, just indices
 - System-wide [open file table]{.alert}: one entry per `open()` call
-- System-wide [inode table]{.alert}: one entry per file, regardless of how many times it's open
+- System-wide [inode table]{.alert}: one entry per open (or recently accessed) file, regardless of how many times it's open
 - Key insight: the *name* of a file lives in a directory; the *file itself* is the inode
 
 ## VFS: Four key abstractions
