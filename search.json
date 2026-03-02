@@ -2125,7 +2125,7 @@
     "href": "day14.html#file-descriptors",
     "title": "CSC 453",
     "section": "File descriptors",
-    "text": "File descriptors\n\nWhen a process calls open(), the OS returns a small non-negative integer: a file descriptor (fd)\nThe fd is just an index into the process’s per-process file descriptor table (stored in the PCB)\nThree fds are always pre-opened for every process:\n\n0 → stdin, 1 → stdout, 2 → stderr\n\nAll subsequent file syscalls take the fd as their first argument:\n\nread(fd, buf, n), write(fd, buf, n), close(fd), lseek(fd, offset, whence)\n\nWhy return an int instead of a pointer?\n\nSafety: the process can’t dereference or forge a kernel pointer\nThe kernel remains in control of the underlying state"
+    "text": "File descriptors\n\nWhen a process calls open(), the OS returns a small non-negative integer: a file descriptor (fd)\nThe fd is just an index into the process’s per-process file descriptor table (stored in the PCB)\nThree fds are always pre-opened for every process:\n\n0 → stdin, 1 → stdout, 2 → stderr\n\nAll subsequent file syscalls take the fd as their first argument:\n\nread(fd, buf, n), write(fd, buf, n), close(fd), lseek(fd, offset, whence)\n\nWhy return an int instead of a pointer?\n\nThe kernel remains in control of the underlying state"
   },
   {
     "objectID": "day14.html#open-file-table",
@@ -2139,7 +2139,7 @@
     "href": "day14.html#three-table-model",
     "title": "CSC 453",
     "section": "Three-table model",
-    "text": "Three-table model\n\nPer-process fd table (in PCB): small, just indices\nSystem-wide open file table: one entry per open() call\nSystem-wide inode table: one entry per file, regardless of how many times it’s open\nKey insight: the name of a file lives in a directory; the file itself is the inode"
+    "text": "Three-table model\n\nPer-process fd table (in PCB): small, just indices\nSystem-wide open file table: one entry per open() call\nSystem-wide inode table: one entry per open (or recently accessed) file, regardless of how many times it’s open\nKey insight: the name of a file lives in a directory; the file itself is the inode"
   },
   {
     "objectID": "day14.html#vfs-four-key-abstractions",
