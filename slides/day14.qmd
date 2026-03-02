@@ -23,17 +23,6 @@ format:
 
 # Files {background-color="#40666e"}
 
-## Linux file types
-- What do you think are some example file types from the OS's perspective? (it's not .c, .txt, etc., but more about the underlying structure and semantics of the file)
-- In UNIX, there are a few OS-supported file types
-  - Regular file (ASCII, binary)
-    - E.g., plaintext, images, executables
-  - Directories (more on this later)
-  - Character special files (abstraction of a character device)
-    - E.g., /dev/tty, /dev/null, /dev/random
-  - Block special files (an abstraction of a block device)
-    - E.g., /dev/sda
-
 ## File access 
 - How do we want to access files?
 - Early OSes only supported [sequential]{.alert} access (with rewind)
