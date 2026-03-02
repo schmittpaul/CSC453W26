@@ -2016,13 +2016,6 @@
     "text": "Admin\n\nAssignment 4 due 3/11 (next Wednesday)\nLab 9 due 3/12 (next Thursday)\n\nI don’t plan to have any additional lab assignments\n\nQuiz 9 due Friday\nMidterm 2\n\nPlease submit regrade requests by EOD Wednesday"
   },
   {
-    "objectID": "day14.html#linux-file-types",
-    "href": "day14.html#linux-file-types",
-    "title": "CSC 453",
-    "section": "Linux file types",
-    "text": "Linux file types\n\nWhat do you think are some example file types from the OS’s perspective? (it’s not .c, .txt, etc., but more about the underlying structure and semantics of the file)\nIn UNIX, there are a few OS-supported file types\n\nRegular file (ASCII, binary)\n\nE.g., plaintext, images, executables\n\nDirectories (more on this later)\nCharacter special files (abstraction of a character device)\n\nE.g., /dev/tty, /dev/null, /dev/random\n\nBlock special files (an abstraction of a block device)\n\nE.g., /dev/sda"
-  },
-  {
     "objectID": "day14.html#file-access",
     "href": "day14.html#file-access",
     "title": "CSC 453",
