@@ -1,0 +1,408 @@
+---
+title: CSC 453
+subtitle: Winter 2026 Day 16
+format: 
+  clean-revealjs:
+    self-contained: true
+    incremental: true
+    margin: 0.15 
+    # height: 700   # Optional: Normal height (defaults to 700)
+    # width: 1000   # Optional: Normal width (defaults to 900)
+---
+
+## Admin
+:::{.nonincremental}
+- Assignment 4 Wednesday
+- Lab due Thursday
+- Quiz due Friday
+:::
+
+## Ext3 journaling (cont'd)
+- Ext3 uses ordered mode journaling, which means that only metadata changes are journaled, and data blocks are written directly to their final location on disk
+  - We have to be *careful* about the order of operations to maintain consistency
+- We need to break the transaction into multiple steps, and write them in a specific order to ensure consistency
+  - Write data blocks to their [final disk location]{.alert} (never to the journal)
+  - Write metadata blocks to the journal
+  - Write transaction end marker to journal (MUST be last, known as a transaction [commit]{.alert})
+  - Write (checkpoint) metadata blocks to their final disk location
+- The key invariant: data is on disk *before* the journal commit that makes the new metadata visible
+
+## Another example: Log-structure File System
+- Assumption: memory keeps growing, so writes are most important since reads will be done from memory
+- Data are written to circular log, never overwriting data
+- Metadata and data are not in fixed positions
+- FS is occasionally checkpointed
+- Side bonus: implicit versioning... easy to look back to older version of files
+
+## Log-structure File System (cont'd)
+- Pros?
+  - Fast writes, since we just append to the log
+  - Crash recovery reads the checkpoint region to restore a consistent inode map, then scans forward in the log for any newer inode map segments written after the checkpoint
+- Cons?
+  - Reads can be slow, since data may be scattered across the log
+  - Space management can be complex, we need garbage collection to reclaim space from deleted files and old versions
+  - Not widely used in practice, but the ideas have influenced modern file systems like `ZFS` and `Btrfs`, which use copy-on-write techniques to achieve similar benefits
+
+## Copy-on-write file systems
+- Traditional write:
+  - `[read block] → [modify in memory] → [write back to same disk block]`
+- Copy-on-write (COW) write:
+  - `[read block] → [modify in memory] → [write to new disk block] → [update metadata to point to new block]`
+- Pros?
+  - Crash consistency: since we never overwrite existing data, we can always recover to a consistent state
+  - Snapshots and versioning: we can easily create snapshots by just keeping references to old blocks
+
+
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
+
+# Storage basics {background-color="#40666e"}
+## Questions to consider
+:::{.nonincremental}
+- What are the three components of HDD access time, and which dominates?
+- How does RPM affect average rotational latency?
+:::
+
+
+## Performance trends
+![](images/storage_performance.png)
+
+## Consequence: storage performance dominates (in a bad way)
+- Assume 50 seconds CPU & 50 seconds I/O
+  - 1998 - 1999
+    - CPU improves by: $N = 50/25 = 2$
+    - Program performance improves by: $N = 100/75 = 1.33$
+  - 1999 - 2000
+    - CPU performance - factor of 2
+    - Program performance $N = 75/62.5=1.2$
+  - 2000 - 2001
+    - CPU performance - factor of 2
+    - Program performance $N = 62.5/56.5 = 1.11$
+
+## HDDs
+:::: {.columns}
+::: {.column width="50%"}
+- Yes, they're still important / around
+- Far more cost effective than SSDs
+- Sector: (512 bytes) smallest amount of IO you can do to an HDD
+- Tracks: 256KB-1MB in size
+:::
+::: {.column width="2%"}
+:::
+::: {.column width="48%"}
+![](images/hdd.png)
+:::
+::::
+
+## HDDs (cont'd)
+:::: {.columns}
+::: {.column width="50%"}
+- Actual drives have many platters, are double-sided
+- Millions of tracks
+- Performance factors?
+  - Seek (moving the arm to position the head over the correct sector)
+  - Rotation (RPMs)
+  - Transfer (time to read/write from the head)
+- Which do you think is most burdensome / costly?
+:::
+::: {.column width="2%"}
+:::
+::: {.column width="48%"}
+![](images/hdd_platters.png)
+:::
+::::
+
+## Seek time
+- Seek: accelerate, coast, settle
+![](images/hdd_seek.png)
+
+## Rotation time
+- a function of RPM; average rot. lat. ½ revolution
+  - e.g. 7200RPM = 8.33ms per rotation 
+    - avg = 4.16ms
+- Common HDD speeds:
+  - 5400 (yikes, good for cold storage)
+  - 7200 (decent middle ground)
+  - 10K, 15K (good for a lot of random accesses); use case?
+    - DBs 
+
+## Transfer time
+- simple case (all data in one track): 
+  - `sectors desired * time for revolution / sectors per track`
+- complex case (mult. tracks): above + ? (seeks, track & cyl. switches)
+
+## Where does the time go?
+![](images/hdd_random4k.png)
+
+## Where does the time go? It depends.
+![](images/hdd_sizeperf.png)
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
+
+# HDD organization {background-color="#40666e"}
+## Questions to consider
+:::{.nonincremental}
+- What is track skew, and why does it improve sequential read performance across cylinders?
+- Why do outer tracks hold more data than inner tracks on a constant-RPM drive, and how does zoning address this?
+- When a sector goes bad, what are the two ways a drive can handle it, and what is the trade-off?
+:::
+
+## Simple organization
+![](images/hdd_organization.png)
+
+## Simple organization (cont'd)
+:::: {.columns}
+::: {.column width="50%"}
+- What's presented by the disk drive: a linear array of sectors
+  - This is a logical abstraction
+- Drive must map logical blocks to physical blocks
+:::
+::: {.column width="2%"}
+:::
+::: {.column width="48%"}
+![](images/hdd_organization.png)
+:::
+::::
+
+## Complication: skew
+:::: {.columns}
+::: {.column width="60%"}
+- Sequential reads / write are ideal
+- Unfortunately, seeks exist, and sector sequences can cross cylinders / tracks
+- E.g., if you are reading sectors 9-12 on the disk you need to seek to a new cylinder
+  - What downside does this present?
+    - By the time you seek, sector 12 has already spun past the head, you need to wait for it to rotate back around 
+
+:::
+::: {.column width="2%"}
+:::
+::: {.column width="38%"}
+![](images/hdd_skew1.png)
+:::
+::::
+
+## Complication: skew (cont'd)
+:::: {.columns}
+::: {.column width="60%"}
+- What should we do?
+- Reorganize where sectors are located on the physical device
+  - Requires tuning based on the specific device characteristics, in this example it's 2 blocks off (to go from sector 23 to sector 24)
+
+:::
+::: {.column width="2%"}
+:::
+::: {.column width="38%"}
+![](images/hdd_skew2.png){.fragment}
+:::
+::::
+
+## Complication: zones
+- Linear velocity vs. angular velocity
+- We talk about drives in terms of constant RPM: what is the consequence of this for tracks?
+  - Outer tracks have more space to put data
+![](images/hdd_rotation.png){.fragment}
+
+## Complication: zones (cont'd)
+:::: {.columns}
+::: {.column width="60%"}
+- What should we do?
+- We could slow the rotation on outer tracks
+  - Some older systems did this
+- Option 2: (common) 
+  - Place more sectors per zone on outer tracks
+  - Complicates logic
+
+
+:::
+::: {.column width="2%"}
+:::
+::: {.column width="38%"}
+![](images/hdd_zones.png){.fragment}
+:::
+::::
+
+## Complication: defects
+- Over time, portions of media become unusable (e.g. fail to hold charge, exhibit many errors);
+- How should we handle a defect? 
+  - We keep additional physical space for "spares" (both tracks and sectors)
+
+## Complication: defects (cont'd)
+:::: {.columns}
+::: {.column width="60%"}
+- How should we handle a defect? 
+- [Remapping]{.alert}: move the sector to a location in the reserved spare pool 
+- Ongoing process, taken care of by drive firmware
+- Do you see any downsides?
+  - Sequential access is now broken
+:::
+::: {.column width="2%"}
+:::
+::: {.column width="38%"}
+![](images/hdd_remap.png){.fragment}
+:::
+::::
+
+## Complication: defects (cont'd)
+:::: {.columns}
+::: {.column width="60%"}
+- What else could we do?
+  - Move everything to maintain sequential sectors (known as [slipping]{.alert})
+    - This really only works on a fresh drive formatting: hard to do live
+  - Other approaches?
+    - Error Correcting Codes (ECC)
+      - If you're curious most HDDs use Reed-Solomon
+
+:::
+::: {.column width="2%"}
+:::
+::: {.column width="38%"}
+![](images/hdd_slip.png){.fragment}
+:::
+::::
+
+## HDD organization summary
+- Luckily, the OS no longer needs to care about most of these details: taken care of by firmware on the drive itself
+- We'll return to some gory details about disks in a bit (RAID), but first, disk scheduling
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
+
+# Disk scheduling {background-color="#40666e"}
+## Questions to consider
+:::{.nonincremental}
+- Why does the OS (or disk controller) bother reordering I/O requests rather than just serving them in arrival order?
+- What problem does SSTF solve compared to FCFS, and what new problem does it introduce?
+- How does SCAN (elevator) avoid the starvation problem of SSTF, and why is it unfair to requests that just arrived behind the head?
+- What is the difference between SCAN and LOOK, and why is LOOK generally preferred?
+:::
+
+## Disk scheduling
+- We know that disk performance is punitive
+- OSes typically have many processes issuing reads/writes; this gives us an opportunity to implement some scheduling disciplines on the IO queues that build up
+- Note: these algos used to be in the OS when it directly controlled the device
+  - Drives have their own disk controllers now, which run the algos
+
+## Disk scheduling (cont'd)
+- Remember the costs associated with IO:
+  - Seek, rotation, transfer (seek dominates)
+- Something to consider: I/O is bursty and stochastic
+  - Bunches of requests will arrive with small inter-arrival times
+  - This leads to I/O request queues sometimes growing quite large
+  - … Followed by lengthy inter-arrival times (time to catch up, leads to idle eventually)
+  - Very difficult to predict what's going to be requested, and when
+
+## Disk scheduling (cont'd)
+- Scheduling Goal: how can we efficiently (i.e., order )service requests?
+- Simplest? [FCFS]{.alert} 
+  - Pros?
+    - Nothing done to optimize seek, but fair
+    - No starving
+  - Cons?
+    - No attempt to optimize seek time
+    - Spoiler: almost always sub-optimal 
+
+## FCFS example
+:::{.noincremental}
+- Let's use an example: disk has 200 cylinders; drive head is at cylinder 50; queue of pending requests:
+  - 82, 170, 43, 140, 24, 16, 190
+:::
+
+:::{.notes}
+FCFS: 
+170-50 = 120
+170-43 = 127
+140-43 = 97
+140-16 = 124
+190-16 = 174
+
+642 total
+:::
+
+## Disk scheduling (cont'd)
+- FCFS doesn't do anything to minimize costly seeks. What else should we try?
+- Shortest Seek Time First ([SSTF]{.alert})
+  - Service requests with the shortest seek time from current head location
+- Pros?
+  - Optimal in terms of response time
+- Cons?
+  - Can lead to starvation if requests continue to arrive (request far from the current position may never get serviced)
+
+## SSTF example
+:::{.noincremental}
+- Let's use an example: disk has 200 cylinders; drive head is at cylinder 50; queue of pending requests:
+  - 82, 170, 43, 140, 24, 16, 190
+:::
+
+:::{.notes}
+SSTF: 
+(50-43)+
+(43-24)+
+(24-16)+
+(82-16)+
+(140-82)+
+(170-140)+
+(190-170) 
+=208 
+:::
+
+## Disk scheduling (cont'd)
+- SSTF minimizes seek time, but can lead to starvation. Can we do better?
+- [SCAN]{.alert} (aka Elevator algorithm)
+  - Move the head in one direction, servicing requests as it goes, until it reaches the end of the disk, then reverse direction and service requests on the way back
+- Pros?
+  - Solves starvation issue of SSTF
+  - Simple
+- Cons?
+  - Long waits for those that just arrived behind the r/w head 
+
+## Disk scheduling (cont'd)
+- SCAN favors requests in the middle: leads to non-uniform waits for a uniform request distribution. What should we do?
+- [C-SCAN]{.alert}
+  - Like SCAN, but don't reverse. Jump back to the other side of the disk
+  - Pros?
+    - Same as SCAN, plus more fair 
+  - Cons?
+    - More seeks
+
+## Disk scheduling (cont'd)
+- SCAN and C-SCAN are somewhat wasteful in terms of movement (they both go to the extremes of the disk, regardless of actual requests). Fix?
+- [LOOK]{.alert} / [C-LOOK]{.alert}
+   - Like SCAN and C-SCAN, but your boundaries are the actual requests
+    - True elevator scheduling, usually what people mean when they say SCAN
+  - Pros?
+    - Less wasted movement
+  - Cons?
+    - More complex (not terrible, but more than simply sweeping across the disk)
+
+## Disk scheduling summary
+- Which should we choose?
+- Generally speaking, SCAN family is used
+  - Good for heavy disk loads, avoid starvation
+  - What if you had a system where the average queue length was 1?
+- Linux has a [deadline scheduler]{.alert}
+  - Separate read and write queues (prioritize reads as processes are more likely to block on read vs write)
+  - Ordered queues: so they end up being serviced in a SCAN-like order
+  - Also FCFS queues for both for bookkeeping
+    - After a batch of actions, check to see if there are any in the FCFS queue that has aged beyond some threshold
+
+## {background-color="#6E404F"}
+::: {.r-fit-text}
+What isn't clear?
+
+Comments? Thoughts?
+:::
+
